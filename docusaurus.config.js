@@ -46,6 +46,11 @@ const config = {
         },
         items: [
           {
+            href: '/docs/learn/installation/add-react-to-website',
+            label: 'learn',
+            position: 'left',
+          },
+          {
             href: 'https://github.com/facebook/docusaurus',
             label: 'GitHub',
             position: 'right',
