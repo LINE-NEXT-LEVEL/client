@@ -14,14 +14,14 @@ const config = {
   organizationName: 'LINE-NEXT-LEVEL',
   projectName: 'docusaurus',
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: 'ko',
+    locales: ['ko'],
   },
 
   presets: [
     [
       'classic',
-      ({
+      {
         docs: {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl:
@@ -30,69 +30,68 @@ const config = {
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
-      }),
+      },
     ],
   ],
 
   plugins: ['docusaurus-plugin-vanilla-extract'],
 
-  themeConfig:
-    ({
-      navbar: {
-        title: 'React Docs Beta KOR',
-        logo: {
-          alt: 'React Docs Beta KOR',
-          src: 'img/logo.svg',
+  themeConfig: {
+    navbar: {
+      title: 'React Docs Beta KOR',
+      logo: {
+        alt: 'React Docs Beta KOR',
+        src: 'img/logo.svg',
+      },
+      items: [
+        {
+          href: '/docs/learn/installation/add-react-to-website',
+          label: 'learn',
+          position: 'left',
         },
-        items: [
-          {
-            href: '/docs/learn/installation/add-react-to-website',
-            label: 'learn',
-            position: 'left',
-          },
-          {
-            href: 'https://github.com/facebook/docusaurus',
-            label: 'GitHub',
-            position: 'right',
-          },
-        ],
-      },
-      footer: {
-        style: 'dark',
-        links: [
-          {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Learn',
-                to: '/docs/learn',
-              },
-            ],
-          },
-          {
-            title: 'Community',
-            items: [
-              {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-              },
-              {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'Twitter',
-                href: 'https://twitter.com/docusaurus',
-              },
-            ],
-          },
-        ],
-      },
-      prism: {
-        theme: lightCodeTheme,
-        darkTheme: darkCodeTheme,
-      },
-    }),
+        {
+          href: 'https://github.com/facebook/docusaurus',
+          label: 'GitHub',
+          position: 'right',
+        },
+      ],
+    },
+    footer: {
+      style: 'dark',
+      links: [
+        {
+          title: 'Docs',
+          items: [
+            {
+              label: 'Learn',
+              to: '/docs/learn',
+            },
+          ],
+        },
+        {
+          title: 'Community',
+          items: [
+            {
+              label: 'Stack Overflow',
+              href: 'https://stackoverflow.com/questions/tagged/docusaurus',
+            },
+            {
+              label: 'Discord',
+              href: 'https://discordapp.com/invite/docusaurus',
+            },
+            {
+              label: 'Twitter',
+              href: 'https://twitter.com/docusaurus',
+            },
+          ],
+        },
+      ],
+    },
+    prism: {
+      theme: lightCodeTheme,
+      darkTheme: darkCodeTheme,
+    },
+  },
 };
 
 module.exports = config;
