@@ -1,5 +1,5 @@
-import {Code} from "../../../src/components/Code";
-import {BlockQuote} from "../../../src/components/BlockQuote/BlockQuote";
+import { Code } from '../../../src/components/Code';
+import { BlockQuote } from '../../../src/components/BlockQuote/BlockQuote';
 
 화면 구성요소들은 유저 입력에 반응하여 업데이트됩니다. 예를들어 이미지 갤러리를 클릭하는 것은 열린 이미지를 변경합니다. React에서 시간에 따라 변경되는 데이터를 _state_ 라고 부릅니다. 여러분은 어떤 컴포넌트에도 state를 추가할 수 있으며 필요에 따라 업데이트할 수 있습니다. 이 챕터에서, 여러분은 상호작용을 관리하고 시간 흐름에 따라 다른 출력을 표현하는 컴포넌트를 작성하는 법을 배울 것입니다.
 
@@ -12,7 +12,7 @@ import {BlockQuote} from "../../../src/components/BlockQuote/BlockQuote";
 - 여러 state 업데이트가 저장되는 방법
 - state의 객체를 업데이트하는 방법
 - state의 배열을 업데이트하는 방법
-:::
+  :::
 
 ## 이벤트에 응답하기
 
@@ -22,9 +22,12 @@ React는 여러분이 _event handler_ 를 여러분의 JSX에 추가할 수 있�
 
 <Code src="https://codesandbox.io/s/091ht7?file=/App.js&from-sandpack=true />
 
-:::Ready to learn this topic?
-Event handler를 추가하는 방법을 배우려면 [이벤트에 응답하는 방법](https://beta.reactjs.org/learn/responding-to-events)를 읽으세요
-:::
+<Card
+  title="Ready to learn this topic?"
+  description="Event handler를 추가하는 방법을 배우려면 이벤트에 응답하는 방법을
+읽으세요"
+  link="https://beta.reactjs.org/learn/responding-to-events"
+/>
 
 ## State: 컴포넌트의 메모리
 
@@ -42,9 +45,11 @@ const [showMore, setShowMore] = useState(false);
 
 <Code src="https://codesandbox.io/s/mg96dj?file=%2FApp.js&from-sandpack=true />
 
-:::Ready to learn this topic?
-[State: 컴포넌트의 메모리](https://beta.reactjs.org/learn/state-a-components-memory)를 읽고 상호작용에 value를 기억하고 업데이트하는 방법을 배워보세요.
-:::
+<Card
+  title="Ready to learn this topic?"
+  description="State: 컴포넌트의 메모리를 읽고 상호작용에 value를 기억하고 업데이트하는 방법을 배워보세요."
+  link="https://beta.reactjs.org/learn/state-a-components-memory"
+/>
 
 ## 렌더링과 커밋
 
@@ -56,27 +61,31 @@ const [showMore, setShowMore] = useState(false);
 2. 컴포넌트 렌더링(부엌에서 주문을 준비함)
 3. Dom에 커밋하기(테이블에 주문한 것을 올림)
 
-:::Ready to learn this topic?
-[렌더링과 커밋](https://beta.reactjs.org/learn/render-and-commit)을 읽고 UI 업데이트의 라이프 사이클을 배워보세요.
-:::
+<Card
+  title="Ready to learn this topic?"
+  description="렌더링과 커밋을 읽고 UI 업데이트의 라이프 사이클을 배워보세요."
+  link="https://beta.reactjs.org/learn/render-and-commit"
+/>
 
 ## 스냅샷과 같은 State
 
 Javascript 변수들과는 다르게, React의 state는 다소 스냅샷처럼 동작합니다. 여러분이 가진 값을 세팅시에 바로 바꾸지 않는 대신, 재렌더링이 트리거됩니다. 처음엔 놀라울 것 입니다.
 
 ```js
-console.log(count);  // 0
+console.log(count); // 0
 setCount(count + 1); // Request a re-render with 1
-console.log(count);  // Still 0!
+console.log(count); // Still 0!
 ```
 
 React는 여러분이 작은 버그들을 피하도록 돕기위해 이와같이 동작합니다. 여기에 작은 채팅 앱이 있습니다. 여러분이 처음 "보내기"를 누르고 _다음_ 수신인을 Bob으로 바꿨을때 어떤일이 일어나는지 맞춰보세요. 5초 후 누구의 이름이 `alert`될까요?
 
 <Code src="https://codesandbox.io/s/hqhrui?file=%2FApp.js&from-sandpack=true />
 
-:::Ready to learn this topic?
-[스냅샷과 같은 state](https://beta.reactjs.org/learn/state-as-a-snapshot)를 읽고 왜 state가 event handler 내부에서 왜 바뀌지 않고 "고정된" 것으로 표현되는지 배워보세요.
-:::
+<Card
+  title="Ready to learn this topic?"
+  description="스냅샷과 같은 state를 읽고 왜 state가 event handler 내부에서 왜 바뀌지 않고 "고정된" 것으로 표현되는지 배워보세요."
+  link="https://beta.reactjs.org/learn/state-as-a-snapshot"
+/>
 
 ## 일련의 state 변화를 저장하는 법
 
@@ -87,22 +96,24 @@ React는 여러분이 작은 버그들을 피하도록 돕기위해 이와같이
 [스냅샷과 같은 state](https://beta.reactjs.org/learn/state-as-a-snapshot)는 왜 이렇게 동작하는지 설명해줍니다. state를 세팅하는 것은 실행중인 코드에서 아직 바뀌지 않은 값에 대해 새로운 재렌더링을 요청하게됩니다. 따라서 `score`는 여러분이 `setScore(score+1)`을 호출한 뒤에도 `0`이 됩니다.
 
 ```js
-console.log(score);  // 0
+console.log(score); // 0
 setScore(score + 1); // setScore(0 + 1);
-console.log(score);  // 0
+console.log(score); // 0
 setScore(score + 1); // setScore(0 + 1);
-console.log(score);  // 0
+console.log(score); // 0
 setScore(score + 1); // setScore(0 + 1);
-console.log(score);  // 0
+console.log(score); // 0
 ```
 
 여러분은 _updater function_ 을 state를 세팅할때 넘김으로서 값을 고정할 수 있습니다. `setScore(score+1)`을 `setScore(s => s+1)`로 수정하는 것이 "+3"버튼을 어떻게 고치는지 알아봅시다. 이 방법은 여러분이 여러 state 업데이트를 저장해야한다면 번거로울 수 있습니다.
 
 <Code src="https://codesandbox.io/s/dotv21?file=%2FApp.js&from-sandpack=true />
 
-:::Ready to learn this topic?
-[일련의 state 변경 저장하기](https://beta.reactjs.org/learn/queueing-a-series-of-state-changes)를 읽고 다음 렌더링 전에 여러 업데이트를 저장하는 방법을 학습해보세요.
-:::
+<Card
+  title="Ready to learn this topic?"
+  description="일련의 state 변경 저장하기를 읽고 다음 렌더링 전에 여러 업데이트를 저장하는 방법을 학습해보세요."
+  link="https://beta.reactjs.org/learn/state-as-a-snapshot"
+/>
 
 ## state에서 객체 업데이트하기
 
@@ -114,9 +125,11 @@ State는 객체를 포함한 어떠한 Javscript 값도 저장할 수 있습니�
 
 <Code src="https://codesandbox.io/s/rml6xy?file=%2FApp.js&from-sandpack=true />
 
-:::Ready to learn this topic?
-[State의 객체들을 업데이트하기](https://beta.reactjs.org/learn/updating-objects-in-state)를 보고 객체를 업데이트하는 방법을 정확히 배워보세요.
-:::
+<Card
+  title="Ready to learn this topic?"
+  description="State의 객체들을 업데이트하기를 보고 객체를 업데이트하는 방법을 정확히 배워보세요."
+  link="https://beta.reactjs.org/learn/state-as-a-snapshot"
+/>
 
 ## state에서 배열 업데이트하기
 
