@@ -1,9 +1,8 @@
-import { Code } from '../../../src/components/Code';
-import { BlockQuote } from '../../../src/components/BlockQuote/BlockQuote';
+import { Code } from '../../src/components/Code';
 
 화면 구성요소들은 유저 입력에 반응하여 업데이트됩니다. 예를들어 이미지 갤러리를 클릭하는 것은 열린 이미지를 변경합니다. React에서 시간에 따라 변경되는 데이터를 _state_ 라고 부릅니다. 여러분은 어떤 컴포넌트에도 state를 추가할 수 있으며 필요에 따라 업데이트할 수 있습니다. 이 챕터에서, 여러분은 상호작용을 관리하고 시간 흐름에 따라 다른 출력을 표현하는 컴포넌트를 작성하는 법을 배울 것입니다.
 
-:::In this chapter
+:::note In this chapter
 
 - 유저가 만드는 이벤트를 처리하는 방법
 - state로 컴포넌트들이 정보를 기억하도록 하는 방법
@@ -112,7 +111,7 @@ console.log(score); // 0
 <Card
   title="Ready to learn this topic?"
   description="일련의 state 변경 저장하기를 읽고 다음 렌더링 전에 여러 업데이트를 저장하는 방법을 학습해보세요."
-  link="https://beta.reactjs.org/learn/state-as-a-snapshot"
+  link="https://beta.reactjs.org/learn/queueing-a-series-of-state-changes"
 />
 
 ## state에서 객체 업데이트하기
@@ -128,7 +127,7 @@ State는 객체를 포함한 어떠한 Javscript 값도 저장할 수 있습니�
 <Card
   title="Ready to learn this topic?"
   description="State의 객체들을 업데이트하기를 보고 객체를 업데이트하는 방법을 정확히 배워보세요."
-  link="https://beta.reactjs.org/learn/state-as-a-snapshot"
+  link="https://beta.reactjs.org/learn/updating-objects-in-state"
 />
 
 ## state에서 배열 업데이트하기
@@ -141,9 +140,11 @@ State는 객체를 포함한 어떠한 Javscript 값도 저장할 수 있습니�
 
 <Code src="https://codesandbox.io/s/qpdxm1?file=%2FApp.js&from-sandpack=true />
 
-:::Ready to learn this topic?
-[state에서 배열 업데이트하기](https://beta.reactjs.org/learn/updating-arrays-in-state)를 보고 배열을 업데이트하는 방법을 정확히 배워보세요.
-:::
+<Card
+  title="Ready to learn this topic?"
+  description="state에서 배열 업데이트하기를 보고 배열을 업데이트하는 방법을 정확히 배워보세요."
+  link="https://beta.reactjs.org/learn/updating-arrays-in-state"
+/>
 
 ## 다음에 배울 것
 
