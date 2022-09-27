@@ -68,7 +68,7 @@ JSX에 인라인으로 이벤트 핸들러를 넣는 것도 가능합니다.
 | `<button onClick={handleClick}>` | `<button onClick={handleClick()}>` |
 
 둘의 차이는 미묘합니다. 첫 번째 예시에서 `handleClick` 함수는 `onClick` 이벤트 핸들러로써 전달되었습니다.
-이는 React에게 함수를 기억하고 버튼이 클릭되었을 때 그 함수를 호출하라고 명령하는 것입니다.
+이는 React에게 함수를 기억하게 하고 버튼이 클릭되었을 때 그 함수를 호출하라고 명령하는 것입니다.
 
 두 번째 예시에서 `handleClick()` 뒤에 붙은 `()`는 클릭 이벤트가 발생하지 않더라도
 [렌더링](https://beta.reactjs.org/learn/render-and-commit) 도중에 즉시 함수가 실행되도록 합니다.
