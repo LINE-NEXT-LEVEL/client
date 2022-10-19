@@ -1,11 +1,12 @@
 # Convention
 
-Recap : 되짚어보기
-state : 상태
-component : 컴포넌트
-Try some challenges : 문제에 도전해보세요.
+Recap : 되짚어보기  
+state : 상태  
+component : 컴포넌트  
+Try some challenges : 문제에 도전해보세요.  
 
-일반명사 : 
+일반명사 :   
+
 React, Javascript, Strict Mode 
 
 
