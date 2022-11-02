@@ -1,0 +1,273 @@
+import { Code } from '../../../src/components/Code';
+import { Card } from '../../../src/components/Card';
+
+# 객체인 상태를 업데이트하기
+
+상태는 모든 종류의 JavaScript 값을 가질 수 있습니다. 하지만 리액트 상테가 갖고 있는 객체를 직접적으로 변경해서는 안됩니다. 대신, 객체를 업데이트하고 싶을 때는 새 객체를 만들어야(또는 기존에 있는 객체의 복사본을 만들거나) 합니다.
+그리고 나서 그 복사본을 사용해 상태를 설정해야 합니다. 
+
+:::note You will learn
+
+- 리액트 상태인 객체를 올바르게 업데이트하는 방법
+- 객체를 변형하지 않고 중첩된 객체를 업데이트하는 방법
+- 불변성이란 무엇인지, 그리고 불변성을 깨뜨리지 않는 방법
+- 객체를 덜 반복해서 복사하는 방법
+:::
+
+## mutation(변화)이란?
+
+모든 종류의 JavaScript값을 상태로 저장할 수 있습니다
+
+```js
+const [x, setX] = useState(0);
+```
+
+이 때까지 number, string, boolean 값으로 작업해왔습니다. 이 JavaScript값들은 "불변"합니다. "불변"하다는 것은 바꿀 수 없거나 "읽기 전용"이라는 의미입니다. 값을 _교체_하기 위해 다시 렌더링을 할 수 있습니다:
+
+```js
+setX(5);
+```
+
+`x`상태는 `0`에서 `5`로 변했습니다. 하지만 숫자 `0` _그 자체_는 변하지 않았습니다. JavaScript의 number, string, boolean과 같이 내장된 원시적인 값을 변경할 수는 없습니다. 
+
+이제 상태로 객체를 고려해보세요:
+
+```js
+const [position, setPosition] = useState({ x: 0, y: 0 });
+```
+
+엄밀히 말해서, _객체 그 자체_의 내용을 바꾸는 것은 가능합니다. *이것을 mutation이라고 부릅니다:*
+
+```js
+position.x = 5;
+```
+
+그러나, 리액트 상태로의 객체가 원칙적으로는 mutable(가변적)임에도 불구하고, 객체가 불변적인 것*처럼* 취급해야 합니다-number,string처럼요. 객체를 변경하는 대신에, 항상 교체해야 합니다.
+
+## 상태를 읽기 전용으로 취급하기
+
+다른 말로, 항상 *상태로 사용하는 JavaScript 객체를 읽기 전용으로 다루어야 합니다.*
+
+이 예시는 현재의 포인터 위치를 표현하기 위해 상태로 객체를 사용합니다. 원래라면 미리보기 영역에서 빨간 점을 건드리거나 커서를 움직이면 빨간 점도 같이 움직이게 되어있습니다. 하지만 점이 최초의 지점에 계속 머물러 있습니다:
+
+<Code src='https://codesandbox.io/s/lindzn?file=%2FApp.js&utm_medium=sandpack'/>
+
+코드에 약간의 문제가 있습니다.
+
+```js
+onPointerMove={e => {
+  position.x = e.clientX;
+  position.y = e.clientY;
+}}
+```
+
+이 코드는 [이전의 렌더링](https://beta.reactjs.org/learn/state-as-a-snapshot#rendering-takes-a-snapshot-in-time)에서 `position`에 할당된 객체를 변경시킵니다. 하지만 상태 설정 함수를 사용하지 않으면,
+리액트는 그 객체가 변화했는지 알 수 없습니다. 그래서 리액트가 아무것도 반응하지 않는 것입니다. 이것은 식사를 마치고 나서 주문을 변경하려고 하는 것과 같은 것입니다.
+상태를 변화시키는 것은 몇 가지 케이스에서 작동할 수 있지만, 권장하는 방법은 아닙니다. 렌더링할 때는 접근하는 상태값을 읽기 전용으로 취급해야 합니다.
+
+실제로 이 경우에 [새로 렌더링을 일으키기](https://beta.reactjs.org/learn/state-as-a-snapshot#rendering-takes-a-snapshot-in-time) 위해서는 *_새_ 객체를 만들고 새 객체를 상태 설정 함수로 넘겨주어야 합니다:*
+
+```js
+onPointerMove={e => {
+  setPosition({
+    x: e.clientX,
+    y: e.clientY
+  });
+}}
+```
+
+`setPosition`을 사용하면 리액트에 이렇게 말하는 것입니다:
+
+- 새 객체로 `position`을 교체해라
+- 이 컴포넌트를 다시 렌더링해라
+
+미리보기 영역을 클릭하거나 위에 마우스를 위치시키면 빨간 점이 포인터를 따라간다는 것을 확인할 수 있습니다:
+
+<Code src="https://codesandbox.io/s/dqdjes?file=%2FApp.js&utm_medium=sandpack"/>
+
+:::note DEEP DIVE
+
+### 지역적인 변화는 괜찮습니다. 
+
+이와 같은 코드의 문제는 이 코드가 상태로 사용되는 _존재하는_ 객체를 변형시킨다는 점입니다:
+
+```js
+position.x = e.clientX;
+position.y = e.clientY;
+```
+
+:::
+
+하지만 이 코드는 _방금 생성된_ 새 객체를 변형시키기 때문에 *완전히 괜찮습니다.*:
+
+```js
+const nextPosition = {};
+nextPosition.x = e.clientX;
+nextPosition.y = e.clientY;
+setPosition(nextPosition);
+```
+
+사실, 이렇게 적는 것과 완전히 같기도 합니다:
+
+```js
+setPosition({
+  x: e.clientX,
+  y: e.clientY
+});
+```
+
+가변성은 이미 상태로 _존재하는_객체를 변경할 때만 문제가 됩니다. 방금 생성한 객체를 변경하는 것은 _그 객체를 참조하는 코드가 없기_ 때문에 괜찮습니다.
+방금 새로만든 객체를 변경하는 것은 그것에 의존하는 무언가에 우연히 영향을 미치지 않을 것입니다. 이것을 "지역 mutation"이라고 부릅니다. 
+[렌더링 하는 동안](https://beta.reactjs.org/learn/keeping-components-pure#local-mutation-your-components-little-secret)에도 지역 mutation은 가능합니다. 엄청 편리하고 완전히 괜찮죠!
+
+:::
+
+## spread 문법으로 객체 복사하기
+
+이전의 예시에서, `position`객체는 항상 현재 커서 위치에서 새롭게 갱신되어 만들어졌습니다. 하지만, 종종 _이미 존재하는_데이터를 포함해서 새로운 객체를 만들고 싶을 수도 있습니다. 
+예를 들어, 형식에서 _단 한_ 필드만 업데이트하고 다른 필드는 이전 값들을 유지하고 싶을 수도 있습니다. 
+
+이 입력 필드는 `onChange` 핸들러가 상태를 변경하기 때문에 동작하지 않습니다:
+
+<Code src="https://codesandbox.io/s/ex76lb?file=/App.js&utm_medium=sandpack"/>
+
+예를 들어, 이 줄의 코드는 과거의 렌더링에서 상태를 변경합니다:
+
+```js
+person.firstName = e.target.value;
+```
+
+기대하는 행동을 얻는 안정적인 방법은 새 객체를 만들고 새로운 객체를 `setPerson`으로 넘기는 것입니다. 하지만 여기서 하나의 필드만 변하기 때문에 *이미 있는 데이터도 새 객체에 복사*하고 싶을 수 있습니다:
+
+```js
+setPerson({
+  firstName: e.target.value, // New first name from the input
+  lastName: person.lastName,
+  email: person.email
+});
+```
+
+[객체 spread](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#spread_in_object_literals)를 사용하면 모든 객체의 특성들을 개별적으로 복사할 필요가 없습니다.
+
+```js
+setPerson({
+  ...person, // Copy the old fields
+  firstName: e.target.value // But override this one
+});
+```
+
+이제 형식이 동작합니다!
+각 입력 필드에 각가의 상태변수를 선언하지 않았다는 것을 확인해보세요. 큰 형식을 사용할 때, 한 객체에 모든 데이터를 그룹으로 만들어서 유지하는 것은 매우 편리합니다 - 정확히 업데이트하는 한 말입니다!
+
+<Code src="https://codesandbox.io/s/8t5lq9?file=/App.js&utm_medium=sandpack"/>
+
+`...`spread 문법은 "얕은"복사입니다. - 이 문법은 복사할 때 한 단계의 깊이만 복사합니다. 빠르지만, 중첩된 값들을 업데이트하길 원할 때, 한 번 이상 사용해야 할 것입니다. 
+
+:::note DEEP DIVE
+
+### 여러개의 필드에 하나의 이벤트 핸들러 사용하기
+
+동적인 값을 가진 특성을 명시하기 위해 객체 선언 안에 `[``]` 괄호를 사용할 수 있습니다. 여기 세개의 다른 이벤트 핸들러 대신 하나만을 사용한 같은 예시가 있습니다. 
+
+<Code src="https://codesandbox.io/s/59hnw3?file=/App.js&utm_medium=sandpack"/>
+
+여기, `e.target.name`은 DOM 요소의 `<input>`에 주어진 `name` 특성을 가리킵니다. 
+
+:::
+
+## 중첩된 객체 업데이트하기 
+
+이와 같은 중첩된 객체 구조를 고려해보세요:
+
+```js
+const [person, setPerson] = useState({
+  name: 'Niki de Saint Phalle',
+  artwork: {
+    title: 'Blue Nana',
+    city: 'Hamburg',
+    image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+  }
+});
+```
+만약 `person.artwork.city`를 업데이트하길 원하면 어떻게 변경을 시킬지는 명확합니다:
+
+```js
+person.artwork.city = 'New Delhi';
+```
+
+하지만 리액트에서는, 상태를 불변하는 것으로 취급해야해요! `city`를 변경하기 위해서, (이전의 것에서 데이터를 미리 채워놓은) 새로운 `artwork` 객체를 만들 필요가 있을 것입니다, 그리고 나서 
+새로운 `artwork`를 가리키는 새로운 `person` 객체를 만들어냅니다:
+
+```js
+const nextArtwork = { ...person.artwork, city: 'New Delhi' };
+const nextPerson = { ...person, artwork: nextArtwork };
+setPerson(nextPerson);
+```
+
+또는, 하나의 함수 호출로 적힐 수도 있습니다:
+
+```js
+setPerson({
+  ...person, // Copy other fields
+  artwork: { // but replace the artwork
+    ...person.artwork, // with the same one
+    city: 'New Delhi' // but in New Delhi!
+  }
+});
+```
+
+조금 장황하긴 하지만, 많은 케이스에서 잘 작동합니다:
+
+<Code src="https://codesandbox.io/s/qczu11?file=/App.js&utm_medium=sandpack"/>
+
+:::note DEEP DIVE
+
+### 객체는 정말로 중첩된 것은 아닙니다
+
+객체는 코드에서 "중첩된" 것처럼 보입니다:
+
+```js
+let obj = {
+  name: 'Niki de Saint Phalle',
+  artwork: {
+    title: 'Blue Nana',
+    city: 'Hamburg',
+    image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+  }
+};
+```
+
+그러나, "중첩"은 객체가 어떻게 행동하는지를 생각하기에는 부정확한 방법입니다. 코드가 작동할 떄, "중첩된" 객체 같은 것은 없습니다. 여러분은 두개의 다른 객체를 보고 있습니다:
+
+```js
+let obj1 = {
+  title: 'Blue Nana',
+  city: 'Hamburg',
+  image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+};
+
+let obj2 = {
+  name: 'Niki de Saint Phalle',
+  artwork: obj1
+};
+```
+`obj1`는`objk2`"안에" 있는 것이 아닙니다. 예를 들어, `obj3`도 `obj1`를 "가리킬" 수 있습니다:
+
+```js
+let obj1 = {
+  title: 'Blue Nana',
+  city: 'Hamburg',
+  image: 'https://i.imgur.com/Sd1AgUOm.jpg',
+};
+
+let obj2 = {
+  name: 'Niki de Saint Phalle',
+  artwork: obj1
+};
+
+let obj3 = {
+  name: 'Copycat',
+  artwork: obj1
+};
+```
+:::
