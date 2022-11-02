@@ -1,0 +1,319 @@
+import { Code } from "../../../src/components/Code";
+
+# 상태를 통해 입력값에 반응하기
+
+React는 UI를 만들 때 선언적인 방법을 이용합니다. 각각의 UI 조각들을 명시적으로 다루는 대신,
+컴포넌트 안에 상태를 포함시키고 그 상태를 이용해 유저의 입력값을 다룰 수 있습니다.
+이 방식은 디자이너가 UI를 대하는 사고방식과 유사합니다.
+
+:::info 여러분이 배울 것
+- 선언적인 UI 프로그래밍이 명령형 UI 프로그래밍과 어떻게 다른지 이해합니다.
+- 컴포넌트가 가질 수 있는 다양한 시각적 상태를 다루는 방법을 배웁니다.
+- 코드를 통해 시각적 상태의 변화를 일으키는 방법을 익힙니다.
+:::
+
+## 선언적인 UI는 명령형 UI와 어떻게 다른가요?
+
+UI 상호작용을 디자인할 때, 여러분은 아마 유저의 행동에 따른 UI _변화_에 대해 생각할 것입니다.
+유저가 정답을 적어 제출할 수 있는 form을 만든다고 가정해봅시다.
+
+- 무언가를 form 안에 적는다면, "제출" 버튼이 **활성화**됩니다.
+- 만약 "제출" 버튼을 누르면, form과 버튼 모두 **비활성화 되고** spinner가 **나타납니다.**
+- 만약 네트워크 요청에 성공한다면, form은 **숨겨지고** "감사합니다" 메시지가 **나타납니다.**
+- 만약 네트워크 요청에 실패했다면, 에러 메시지가 **나타나고**, form은 다시 **활성화** 됩니다.
+
+**명령형 프로그래밍**에서는, 상호작용을 구현할 때 위의 내용을 그대로 따라야 합니다.
+여러분은 무슨 일이 일어나는지에 따라 UI를 조작하는 정확한 순서를 적어야 합니다.
+비슷한 예로, 여러분이 조수석이 탄 채로 운전자에게 목적지를 알려주기보다 어디서 직진하고 어디서 꺾어야 하는지를 말해주고 있다고 생각해볼 수 있습니다.
+
+<div style={{ display: "flex" }}>
+    <img src="https://beta.reactjs.org/images/docs/illustrations/i_imperative-ui-programming.png" width="55%" style={{ margin: "auto", borderRadius: "10px" }} />
+</div>
+
+<br />
+
+운전자는 여러분이 어디에 가는지를 모릅니다. 단지 여러분이 내리는 명령에만 따르고 있습니다. (그리고 만약 방향이 잘못되었다면, 결국 이상한 장소에 도착하겠죠!)
+spinner부터 버튼까지 각 요소에 명령을 내리고 있기 때문에 우리는 이것을 _명령형 프로그래밍_ 이라고 부릅니다.
+
+아래는 명령형 UI 프로그래밍의 예시입니다. form은 React로 작성되지 않았고 브라우저에 내장된
+[DOM](https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model)을 이용합니다.
+
+<Code src="https://codesandbox.io/embed/funny-cray-kpgmzv?fontsize=14&hidenavigation=1&theme=dark" />
+
+명령형으로 UI를 조작하는 것은 격리된 예시에서는 잘 동작합니다. 하지만 훨씬 더 복잡한 시스템이 된다면 관리하기는 무척이나 어려워질 것입니다.
+한 페이지 전체를 차지하는 서로 다른 form이 있다고 상상해보세요. UI 요소 하나 혹은 상호작용 하나를 추가하더라도 모든 코드를 세심하게 체크해야 하고,
+잘못하면 버그를 만들 것입니다. (무언가를 감추거나 보여지게 하는걸 깜빡했다고 생각해보세요!)
+
+React는 이 문제를 해결하기 위해 만들어졌습니다.
+
+React에서는 UI를 직접 조작하지 않습니다. 활성화하고, 비활성화하고, 숨기고, 보여주는 UI 조작을 직접 하지 않는다는 뜻입니다.
+대신, **어떤 것을 보여주고 싶어 하는지를 선언합니다.** 어떻게 UI를 업데이트 시킬지는 React의 몫입니다.
+여러분이 택시에 타서 기사님께 어디로 가야할지를 말하는 것을 생각해보세요. 어디서 좌회전 하고, 어느 차선을 타야하는지를 직접 말하지는 않습니다.
+이건 기사님이 해야 할 일이죠. 그리고 기사님들은 가끔 여러분이 모르는 지름길을 알고계실 수도 있습니다!
+
+<div style={{ display: "flex" }}>
+    <img src="https://beta.reactjs.org/images/docs/illustrations/i_declarative-ui-programming.png" width="55%" style={{ margin: "auto", borderRadius: "10px" }} />
+</div>
+
+## UI를 선언적으로 생각하기
+
+여러분은 위에서 어떻게 form을 명령형으로 구현하는지 봤습니다. React에서는 이를 어떻게 생각하는지 이해하기 위해서,
+React에서 이 UI를 다시 구현하는 과정을 거쳐보겠습니다.
+
+1. 컴포넌트의 시각적 상태가 어떤 것들이 있는지 **확인**합니다.
+2. 어떤 것들이 이 상태의 변화를 만들어내는지 **판단**합니다.
+3. `useState`를 통해 메모리에 상태를 **표현**합니다.
+4. 꼭 필요하지 않은 상태 변수들을 **제거**합니다.
+5. 이벤트 핸들러들을 이 상태 변경 함수들에 **연결**합니다.
+
+
+### 1단계 : 컴포넌트의 시각적 상태가 어떤 것들이 있는지 확인합니다.
+
+"state machine"은 컴퓨터 과학에서 아마 여러분이 들어본 내용일 것입니다. "state machine"은 여러 "상태"들을 가질 수 있는데 그 상태들 중 하나인 채로 존재합니다.
+만약 디자이너와 함께 일한다면, 서로 다른 "시각적 상태"들에 대한 목업(mockup)들을 본 적이 있을겁니다.
+React는 컴퓨터 과학과 디자인의 교집합에 속합니다. 그래서 두 진영에서 사용하는 아이디어들로부터 영감을 받았습니다.
+
+먼저, 유저가 마주할 수 있는 서로 다른 UI의 "상태"들을 시각화 해봅시다.
+- 비어있음(Empty) : Form은 비활성화된 "제출" 버튼을 가집니다.
+- 작성중(Typing) : Form은 활성화된 "제출" 버튼을 가집니다.
+- 제출중(Submitting) : Form은 완전히 비활성화 되어 있습니다. Spinner가 보여집니다.
+- 성공(Success) : "감사합니다" 메시지가 form 대신 노출됩니다.
+- 실패(Error) : 작성중 상태와 동일하지만, 추가로 에러 메시지가 노출됩니다.
+
+여러분은 로직을 추가하기 전, 디자이너처럼 각각의 상태에 대한 모형(mock)을 만들고 싶어할 것입니다.
+예를 들어, 아래 코드는 form이 가지는 여러 시각적 상태 중 하나의 모형입니다.
+이 모형은 `status` prop을 통해 제어됩니다. status의 기본 값은 `'empty'`입니다.
+
+<Code src="https://codesandbox.io/embed/elegant-matan-jl4mbm?fontsize=14&hidenavigation=1&theme=dark" />
+
+이 prop은 아무 이름이나 붙여도 됩니다. 여기서 이름은 별로 중요하지 않습니다.
+`status = 'empty'`를 `status = 'succes'`로 수정해 성공 메시지가 나타나는지 확인해보세요.
+모형을 사용하면 로직을 연결하기 전에도 상태에 따른 UI의 변화를 확이냏볼 수 있습니다.
+아래 코드는 위 내용을 더 구체화한 프로토타입입니다. 아직은 `status` prop에 의해 제어받고 있기는 합니다.
+
+<Code src="https://codesandbox.io/embed/falling-fast-ld3kn2?fontsize=14&hidenavigation=1&theme=dark" />
+
+
+:::info DEEP DIVE
+### 여러 시각적 상태들을 한번에 보여주기
+
+만약 컴포넌트가 많은 시각적 상태들을 가지고 있다면, 이들을 한 페이지에서 전부 보여준다면 편리할 것입니다.
+<hr />
+
+<Code src="https://codesandbox.io/embed/serverless-browser-wg42kj?fontsize=14&hidenavigation=1&theme=dark" />
+
+이런 페이지들을 "living styleguides" 혹은 "storybooks"라고 부릅니다.
+:::
+
+
+### 2단계 : 어떤 것들이 상태의 변화를 만들어내는지 판단합니다.
+
+두 종류의 입력값에 따라 상태 업데이트를 유도할 수 있습니다.
+- 사용자 입력(Human inputs) : 버튼을 클릭하거나, 값을 입력하거나, 링크를 통해 페이지를 이동하는 등의 입력
+- 컴퓨터 입력(Computer inputs) : 네트워크 응답이 도착하거나, 타임아웃이 종료되거나, 이미지가 로딩되는 등의 입력
+
+<div style={{ display: "flex", justifyContent: "space-evenly" }}>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <img src="https://beta.reactjs.org/images/docs/illustrations/i_inputs1.png" style={{ margin: "auto", borderRadius: "10px", height: "297px", width: "312px" }} />
+        <br />
+        <p>사용자 입력</p>
+    </div>
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <img src="https://beta.reactjs.org/images/docs/illustrations/i_inputs2.png" style={{ margin: "auto", borderRadius: "10px", height: "297px", width: "312px" }} />
+        <br />
+        <p>컴퓨터 입력</p>
+    </div>
+</div>
+
+두 경우 모두, **UI를 업데이트 하기 위해 [상태 변수](https://beta.reactjs.org/learn/state-a-components-memory#anatomy-of-usestate)를 설정해야 합니다.**
+여러분이 개발중인 form은 몇가지 서로 다른 입력값에 따라 상태를 변화시킬 수 있어야 합니다.
+
+- **텍스트 입력값을 변경하는 것(사용자)**은 form의 상태를 _비어있는_ 상태에서 _작성중_ 상태로 변경시키거나, 혹은 그 반대입니다.
+- **제출 버튼을 클릭하는 것(사용자)**은 _제출중_ 상태로 변경되어야 합니다.
+- **성공적인 네트워크 응답(컴퓨터)**은 _성공_ 상태로 변경되어야 합니다.
+- **네트워크 요청 실패(컴퓨터)**는 _실패_ 상태로 변경되어야 하고, 적절한 에러 메시지와 짝을 이뤄야 합니다.
+
+이 흐름을 시각화하는 것을 돕기 위해, 각 상태를 종이에 그려보기로 합니다. 이름이 붙은 원에 상태를 적고 두 상태 사이의 변화는 화살표로 표현합니다.
+이 방법을 통해 많은 흐름들을 스케치해볼 수 있고, 구현 전에 버그를 찾아낼 수도 있습니다.
+
+<div style={{ display: "flex" }}>
+    <img src="https://beta.reactjs.org/_next/image?url=%2Fimages…s%2Fresponding_to_input_flow.dark.png&w=1920&q=75" width="55%" style={{ margin: "auto", borderRadius: "10px" }} />
+</div>
+
+
+## 3단계 : `useState`를 통해 메모리에 상태를 **표현**합니다.
+
+다음으로 컴포넌트의 시각적 상태를 `useState`를 통해 메모리 상에서 표현해야 합니다.
+단순함이 중요합니다. 각 상태의 조각들은 "움직이는 조각들"이고, 가능한 한 적은 "움직이는 조각들"을 사용하도록 합니다.
+복잡성이 증가할수록 더 많은 버그를 만들게 됩니다!
+
+_필수적으로 존재해야 하는_상태부터 시작합시다. 예를 들어. `answer` 상태는 입력값을 위해 필요할 것이고, `error`(만약 에러가 존재한다면) 상태도 마지막 에러 값을 저장하기 위해 필요합니다.
+
+```js
+const [answer, setAnswer] = useState('');
+const [error, setError] = useState(null);
+```
+
+그 다음엔 상태 변수를 작성합니다. 이 상태 변수들은 앞에서 설명한 시각적 상태들 중 하나를 표현하기 위해 필요합니다.
+보통 이런 상태 변수들을 메모리에 표현하는 방법은 한가지 이상입니다. 그래서 적절한 실험이 필요합니다.
+
+만약 최선의 방법이 즉시 떠오르지 않아 분투하고 있다면, _명확하게_ 모든 시각적 상태들을 다룰 수 있도록 충분한 상태 변수들을 만드는 것도 방법입니다.
+
+```js
+const [isEmpty, setIsEmpty] = useState(true);
+const [isTyping, setIsTyping] = useState(false);
+const [isSubmitting, setIsSubmitting] = useState(false);
+const [isSuccess, setIsSuccess] = useState(false);
+const [isError, setIsError] = useState(false);
+```
+
+처음 생각해낸 아이디어는 최선이 아닐 수 있습니다. 그래도 괜찮습니다. 상태를 리팩토링 하는것도 하나의 과정입니다!
+
+
+## 4단계 : 꼭 필요하지 않은 상태 변수들을 **제거**합니다.
+
+여러분은 아마 상태 변수가 중복되어 여러개 생기는 일은 피하려 할 것입니다. 무엇이 진짜 필요한 것인지를 추적하려 하겠죠.
+시간을 조금만 들여 상태 구조를 리팩토링 하는 것은 여러분의 컴포넌트를 더 이해하기 쉽고, 중복을 줄이고, 의도하지 않은 일이 일어나지 않도록 만들어줄 것입니다.
+목표는 **메모리의 상태가 유저에게 보여줄 유효한 UI를 표현하지 않는 경우를 방지하는 것입니다.**
+(예를 들어, 에러 메시지를 보여주는 것과 입력창을 비활성화 하는것은 동시에 일어나서는 안되는 일입니다. 만약 그렇다면, 유저는 에러를 정정할 수 없으니까요!)
+
+아래는 상태 변수들에게 던질 수 있는 질문들입니다.
+
+- **상태가 역설적인 상황을 만들고 있나요?** 예를 들어, `isTyping`과 `isSubmitting`은 동시에 `true`일 수 없습니다. 이런 역설적인 상황은 보통 상태 변수가 실제로 필요한 것보다 많음을 의미합니다.
+이 상황에서는 두 개의 boolean 값으로부터 4가지의 조합이 발생할 가능성이 있습니다. 그치만 세개의 경우만 실제 발생할 수 있는 경우에 대응합니다. 이런 "불가능한" 상태를 없애기 위해서는, 오직 세개의 값만 가질 수 있는 `status`를 만들면 됩니다.
+`status`는 `'typing'`, `'submitting'`, `'success'`만 가질 수 있습니다.
+- **혹시 표현려는 정보가 이미 다른 상태값에 존재하고 있지는 않은가요?** 다른 역설입니다. `isEmpty`와 `isTyping`은 동시에 `true`일 수 없습니다.
+이 둘을 각각의 상태 변수로 표현하게 되면 이 두 변수의 싱크가 깨질 수 있는 위험성이 있고, 버그를 만드는 원인이 됩니다.
+`answer.length === 0`을 통해 직접 체크함으로써 `isEmpty` 변수를 없앨 수 있습니다.
+- **다른 상태변수를 부정(!)하는 것으로 표현할 수 있는 상태변수가 있나요?** `isError`는 `error !== null`을 통해 확인이 가능합니다. 필요하지 않은 상태 변수입니다.
+
+이렇게 정리하고 나면, 3개(4개나 줄었습니다!)의 _필수적인_ 상태 변수들만 가질 수 있습니다.
+
+```js
+const [answer, setAnswer] = useState('');
+const [error, setError] = useState(null);
+const [status, setStatus] = useState('typing'); // 'typing', 'submitting', or 'success'
+```
+
+더 이상 상태 변수를 줄일 수 없습니다. 줄이면 제대로 동작하지 않는다는 것을 여러분은 알고 있습니다.
+
+:::info DEEP DIVE
+### reducer를 통해 "불가능한" 상태 제거하기
+
+이 세 변수는 form의 상태를 표현하는데 충분합니다. 하지만, 여전히 상태 변수들이 form의 시각적 상태에 정확히 대응되지 못하도록 하는 애매한 상태가 존재합니다.
+예를 들어, `status`가 `'success'`일 때 `error`는 null이 아닌 값이 될 수 없습니다.
+이런 상황을 더 정확히 표현하기 위해서는 [reducer로 추출해보는 방법](https://beta.reactjs.org/learn/extracting-state-logic-into-a-reducer)이 있습니다.
+Reducer는 여러개의 상태 변수들을 모아 하나의 객체로 만든 후 로직과 연결시킬 수 있습니다!
+:::
+
+
+## 5단계 : 이벤트 핸들러들을 상태 변경 함수들에 **연결**합니다.
+
+마지막으로, 상태 변수들을 업데이트 할 수 있도록 이벤트 핸들러들을 만듭시다. 아래는 모든 이벤트 핸들러들이 연결된 form 코드의 최종본입니다.
+
+<Code src="https://codesandbox.io/embed/boring-galois-5cw764?fontsize=14&hidenavigation=1&theme=dark" />
+
+명령형으로 작성한 코드보다 조금 길어지긴 했지만, 훨씬 유연해졌습니다.
+모든 상호작용들을 상태의 변화로 표현했기 때문에 이후에 새로운 시각적 상태를 추가하더라도 기존의 코드가 깨질 위험이 적습니다.
+그리고 상호작용 자체의 로직을 변경하지 않고도 각 상태에서 나타내야 할 내용들을 변경할 수 있습니다.
+
+## 되짚어보기
+
+- 선언적 프로그래밍은 UI를 하나하나 관리하는 것(명령형)이 아니라 시각적 상태에 대한 UI를 설명하는 것을 의미합니다.
+- 컴포넌트를 작성할 때는
+  1. 컴포넌트가 가질 수 있는 시각적 상태들을 생각해봅니다.
+  2. 유저와 컴퓨터가 발생시킬 수 있는 상태 변화들이 무엇인지 판단합니다.
+  3. `useState`를 통해 상태 변수들을 생성합니다.
+  4. 버그와 역설적인 내용을 만들지 않기 위해 꼭 필요하지 않은 상태 변수들을 제거합니다.
+  5. 상태 업데이트를 위해 이벤트 핸들러들을 연결합니다.
+
+
+
+:::note 문제에 도전해보세요.
+
+### 도전1. CSS 클래스를 추가하고 삭제해보기
+
+사진을 클릭했을 때 사진 외부의 `<div>` 태그에서 `background--active` CSS 클래스가 _제거_되도록 해보세요.
+대신 `picture--active` 클래스는 `<img>` 태그에 _추가_되어야 합니다.
+배경을 다시 클릭했을 때는 원래대로 CSS 클래스가 돌아와야 합니다.
+
+사진을 클릭했을 때 보라색 배경이 지워지고 사진의 테두리가 강조되어야 합니다. 사진 바깥을 클릭하면 다시 배경이 강조되고 사진의 테두리가 없어져야 합니다.
+
+<Code src="https://codesandbox.io/embed/fragrant-sound-6wjtlp?fontsize=14&hidenavigation=1&theme=dark" />
+
+### 정답
+
+이 컴포넌트는 두개의 시각적 상태를 가질 수 있습니다. 이미지가 활성화된 경우, 그리고 이미지가 비활성화 된 경우입니다.
+- 이미지가 활성화 되었을 때는 CSS 클래스가 `background`와 `picture picture--active`입니다.
+- 이미지가 비활성화 되었을 때는 CSS 클래스가 `background background--active`와 `picture`입니다.
+
+하나의 boolean 상태 변수면 이미지가 활성화된 상태인지 기억하기 충분합니다. 원래의 과제는 CSS 클래스를 추가하고 제거하는 것이었습니다.
+하지만 React에서는 UI를 _조작_하는 것보다 무엇을 _표현_하고 싶은지를 생각해야 합니다. 그래서 두개의 CSS 클래스를 현재 상태에 기반해 계산해야 합니다.
+이미지를 클릭하는 이벤트가 배경을 클릭한 것으로 인식되지 않게 하기 위해 [이벤트의 전파를 막는 것](https://beta.reactjs.org/learn/responding-to-events#stopping-propagation)도 생각해야 합니다.
+
+이미지를 클릭했을 때와 이미지 밖을 클릭했을 때 아래 코드가 동작하는지 확인해보세요.
+
+<Code src="https://codesandbox.io/embed/musing-napier-znfxkx?fontsize=14&hidenavigation=1&theme=dark" />
+
+혹은, 그냥 두개의 서로 다른 JSX를 리턴하도록 해도 됩니다.
+
+<Code src="https://codesandbox.io/embed/fervent-curie-7en2fx?fontsize=14&hidenavigation=1&theme=dark" />
+
+서로 다른 두 개의 JSX를 같은 트리에서 표현하려 한다면, 그 구조가 동일해야 함을 잊지 마세요. (첫 번째 `<div>` -> 첫 번째 `<img>`)
+그렇지 않으면, `isActive`를 변경시키는 것이 트리를 재생성 할 것이고 [상태를 초기화](https://beta.reactjs.org/learn/preserving-and-resetting-state)할 것입니다.
+그래서 두 경우 모두 비슷한 JSX를 리턴한다면 하나의 JSX 조각으로 표현하는게 더 낫습니다.
+
+
+### 도전2. 프로필 에디터
+
+아래는 순수한 JavaScript와 DOM으로 구현된 작은 form입니다. 동작을 이해하기 위해 잠시 조작해보세요.
+
+<Code src="https://codesandbox.io/embed/hidden-browser-kkdwum?fontsize=14&hidenavigation=1&theme=dark" />
+
+이 form은 두가지 모델에 사이에서 동작합니다. 수정 모드에서는 입력 창이 보이고, 보기 모드에서는 결과만 볼 수 있습니다.
+버튼의 라벨은 form이 어떤 모드인지에 따라 "Edit"과 "Save" 사이에서 변화합니다. 입력창의 내용을 수정하면, 아래의 환영 메시지가 실시간으로 바뀝니다.
+
+여러분의 과제는 이 form을 아래 Sandbox에서 React 코드로 재구현 하는 것입니다. 편의를 위해 마크업은 이미 JSX로 변환되어 있습니다.
+하지만 원본 코드가 동작하는 대로 입력창이 보여지고 숨겨지는 처리는 여전히 동작해야 합니다.
+
+하단의 텍스트가 실시간으로 업데이트 되도록 하는 것도 잊지 마세요!
+
+<Code src="https://codesandbox.io/embed/funny-williams-vlgnkf?fontsize=14&hidenavigation=1&theme=dark" />
+
+### 정답
+
+입력값을 받기 위해 `firstName`과 `lastName` 두개의 상태 변수가 필요할 것입니다. 그리고 `isEditing` 상태 변수도 입력창을 보여줄지 말지를 결정하기 위해 필요합니다.
+`fullName`과 같은 상태 변수는 항상 `fistName`과 `lastName`을 통해 계산할 수 있기 때문에 필요하지 _않습니다._
+
+마지막으로, [조건부 렌더링](https://beta.reactjs.org/learn/conditional-rendering)을 통해 `isEditing` 값에 따라 입력창을 보여줄지 말지 결정할 수 있습니다.
+
+<Code src="https://codesandbox.io/embed/infallible-meadow-410cwr?fontsize=14&hidenavigation=1&theme=dark" />
+
+명령형으로 작성된 원래의 코드와 비교해보세요. 차이점이 보이시나요?
+
+
+### 도전3. React 없이 작성된 명령형 코드를 리팩토링하기
+
+아래 코드는 이전 도전에서 보셨던 원본 코드입니다. React 없이 명령형으로 작성되어 있습니다.
+
+<Code src="https://codesandbox.io/embed/hidden-browser-kkdwum?fontsize=14&hidenavigation=1&theme=dark" />
+
+React가 사실 원래부터 없던 것이라고 상상해보세요. 이 코드를 조금 더 유연하고 React와 유사한 버전으로 리팩토링 할 수 있나요?
+React처럼 상태가 명시적이라면 어떻게 보여질까요?
+
+어디서부터 시작해야 할지 모르겠다면, 대부분의 구조가 정리된 아래 코드를 확인해보세요.
+여기서부터 시작한다면, `updateDOM` 내부의 빠진 로직들을 추가할 수 있을 겁니다. (필요하다면 원본 코드를 참고해보세요.)
+
+<Code src="https://codesandbox.io/embed/peaceful-paper-pfpmep?fontsize=14&hidenavigation=1&theme=dark" />
+
+
+### 정답
+
+입력창과 내용, 라벨을 업데이트 하는 로직이 포함된 코드는 아래와 같습니다.
+
+<Code src="https://codesandbox.io/embed/tender-borg-yqlz3l?fontsize=14&hidenavigation=1&theme=dark" />
+
+`updateDOM` 함수는 여러분이 상태 변수를 업데이트 했을 때 React가 실제로 하는 일과 유사합니다.
+(React는 마지막으로 설정된 이후 변경되지 않은 속성들에 대해서는 DOM을 건드리지 않긴 합니다.)
+
+:::
