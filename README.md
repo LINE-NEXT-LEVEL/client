@@ -25,6 +25,8 @@ state : 상태
 component : 컴포넌트  
 Try some challenges : 문제에 도전해보세요.  
 
+in this chapter, you will learn 해석하기
+
 일반명사 :
 
 React, Javascript, Strict Mode
