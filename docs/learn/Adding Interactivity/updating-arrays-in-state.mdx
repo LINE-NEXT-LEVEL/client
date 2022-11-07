@@ -1,0 +1,325 @@
+import {Code} from "../../../src/components/Code";
+import {BlockQuote} from "../../../src/components/BlockQuote/BlockQuote";
+
+# 배열인 상태 업데이트하기
+
+JavaScript에서 배열은 가변적인 것이지만 상태에 배열을 저장할 때에는 배열을 변하지 않는 것으로 취급해야 합니다. 
+객체와 똑같이, 상태에 저장한 배열을 업데이트하고 싶다면 새로운 배열(또는 기존 배열의 복사본)을 만들어내고 새롭게 만든 배열로 상태를 set할 필요가 있습니다.
+
+:::note You will Learn
+- React 배열 상태를 추가하고, 제거하고, 변경하는 방법
+- 배열 속 객체를 업데이트하는 방법
+- 매번 덜 반복적으로 배열을 복사하는 방법
+:::
+
+## 변화없이 배열을 업데이트하기
+
+JavaScript에서 배열은 객체의 또다른 종류일뿐입니다. [다른 객체와 마찬가지로](https://beta.reactjs.org/learn/updating-objects-in-state) **React 배열 상태를 읽기 전용으로만 취급해야 합니다.**
+이는 `arr[0] = 'bird'`와 같이 배열에 아이템을 재할당해서 안된다는 것을 의미합니다. 그리고 `push()`와 `pop()`과 같은 배열을 변화시키는 방법들도 사용해서는 안됩니다.
+
+대신 배열을 업데이트하기를 원할때마다 *새로운* 배열을 상태 지정함수에 넘겨주어야 합니다.
+그러기 위해서, `filter()`와 `map()`과 같은 변화시키지 않는 방법들을 이용해 기존의 배열 상태에서 새로운 배열을 만들 수 있습니다.
+그리고 나서 결과로 나온 새로운 배열을 상태에 재지정하면 됩니다.
+
+보통의 배열 동작 참조표입니다.
+React 상태 내부의 배열을 다룰 때, 왼쪽 열의 방법들을 피해야 하고 대신에 오른쪽 열에 있는 방법들을 가까이해야 합니다.
+
+|.|피하기(배열을 변화시킴)|가까이하기(새로운 배열을 반환)|
+|:---:|:---:|:---:|
+|추가하기|`push`, `unshift`|`concat`, `[...arr]` spread 문법([예시](https://beta.reactjs.org/learn/updating-arrays-in-state#adding-to-an-array))|
+|제거하기|`pop`, `shift`, `splice`|`filter`, `slice` ([예시](https://beta.reactjs.org/learn/updating-arrays-in-state#removing-from-an-array))|
+|대체하기|`splice`, `arr[i] = ...` 할당|`map`([예시](https://beta.reactjs.org/learn/updating-arrays-in-state#replacing-items-in-an-array))|
+|정렬하기|`reverse`, `sort`|먼저 배열을 복사해놓기([예시](https://beta.reactjs.org/learn/updating-arrays-in-state#making-other-changes-to-an-array))|
+
+대안으로 두 열의 모든 방법들을 사용하게 해주는 [Immer를 사용](https://beta.reactjs.org/learn/updating-arrays-in-state#write-concise-update-logic-with-immer)할 수 있습니다.
+
+:::danger 주의
+불행하게도, `slice`와 `splice`는 이름이 비슷하지만 매우 다릅니다.
+
+- `slice`는 배열 전체를 복사하거나 배열의 부분만을 복사하도록 합니다.
+- `splice`는 (배열에 아이템들을 삽입하거나 제거하면서) 배열을 **변화**시킵니다.
+
+React에서 `slice`(`p`가 아닌!)를 훨씬 더 많이 사용할 것입니다 왜냐하면 객체 상태 또는 배열 상태를 변화시키는 것을 원하지 않기 때문입니다.
+[객체를 업데이트하는 것에 관련된 글](https://beta.reactjs.org/learn/updating-objects-in-state)은 변화가 무엇이고 왜 변화가 상태에 추천되지 않는지 설명합니다.
+:::
+
+### 배열에 추가하기
+
+`push()`는 여러분이 원하지 않더라도 배열을 변화시킵니다:
+
+<Code src="https://codesandbox.io/s/rqytth?file=%2FApp.js&utm_medium=sandpack"/>
+
+대신에 기존의 아이템과 새로운 아이템을 끝에서 포함하는 새로운 배열을 만드세요.
+새로운 배열을 만드는 방식은 여러가지 있지만 가장 쉬운 방식은 [배열 spread](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Spread_syntax#spread_in_array_literals) 문법 `...`을 사용하는 것입니다:
+
+```javascript
+setArtists( // 상태를 교체합니다
+  [ // 새로운 배열로
+    ...artists, // 전의 아이템들을 모두 포함하고
+    { id: nextId++, name: name } // 끝에 새로운 아이템도 포함하는
+  ]
+);
+```
+
+이제 정확하게 작동할 것입니다:
+
+<Code src="https://codesandbox.io/s/ucguzz?file=%2FApp.js&utm_medium=sandpack"/>
+
+배열 spread 문법은 또한 기존의 `...artists` *앞에* 아이템을 놓음으로서 아이템을 배열 앞에 붙일 수 있습니다:
+
+```javascript
+setArtists([
+  { id: nextId++, name: name },
+  ...artists // 끝에 이전의 아이템들을 놓습니다
+]);
+```
+
+이러한 방식으로 spread는 배열의 끝에 아이템을 추가하는 `push()`와 배열의 시작부분에 아이템을 추가하는 `unshift()`를 모두 수행합니다.
+위의 sandbox로 시도해보세요!
+
+### 배열에서 제거하기
+
+배열에서 아이템을 제거하는 가장 쉬운 방법은 *걸러내는 것입니다*. 즉, 해당 아이템을 포함하지 않은 새로운 배열을 만들어내는 것입니다.
+그렇게 하기 위해, `filter` 방법을 사용해야 합니다, 예를 들어:
+
+<Code src="https://codesandbox.io/s/g1jqts?file=%2FApp.js&utm_medium=sandpack"/>
+
+여러번 "Delete" 버튼을 클릭하고 클릭 핸들러를 바라보세요.
+
+```javascript
+setArtists(
+  artists.filter(a => a.id !== artist.id)
+);
+```
+
+`artists.filter(a => a.id !== artist.id)`가 의미하는 것은 "`artist.id`와 다른 ID를 갖고 있는 `artists`로 이루어진 배열을 만들어내라"입니다.
+즉, 각각의 예술가의 "Delete" 버튼은 배열에서 그 예술가를 걸러내고 결과로 나온 배열로 재렌더링을 요청합니다. 
+`filter`은 기존의 배열을 변경하지 않는다는 점을 유념하세요.
+
+### 배열을 변형시키기
+
+배열의 약간 또는 전체 아이템을 변경하고 싶다면, **새로운** 배열을 만들어내는 `map()`을 사용할 수 있습니다.
+`map`에 넘기는 함수는 각 아이템의 데이터 또는 각 아이템의 인덱스(또는 두 개 모두)를 이용해 각 아이템으로 무엇을 할 지 결정할 수 있습니다.
+
+이 예시에서, 배열은 정렬된 두개의 원과 하나의 네모를 가지고 있습니다.
+버튼을 누를 때, 원만 아래로 50px 내려갑니다. `map()`을 사용하여 새로운 데이터가 담긴 배열을 만들어냈기 때문입니다:
+
+<Code src="https://codesandbox.io/s/izexy3?file=%2FApp.js&utm_medium=sandpack"/>
+
+### 배열 속 아이템 바꾸기
+
+배열 속 하나 이상의 아이템들을 교체하기를 원하는 것은 매우 흔합니다.
+`arr[0] = 'bird'`와 같이 할당은 기존 배열을 변화시키므로 대신 여러분은 `map`을 또 사용하고 싶을 것입니다.
+
+아이템을 교체하기 위해, `map`을 이용해 새로운 배열을 만드세요.
+`map` 함수를 부를 때, 두번째 인수로 아이템 인덱스를 받을 것입니다. 이 아이템 인덱스로 (첫번째 인수인)기존 아이템 또는 다른 무언가를 반환할지 말지 결정하는 데 사용하세요:
+
+<Code src="https://codesandbox.io/s/opjfs5?file=%2FApp.js&utm_medium=sandpack"/>
+
+### 배열에 삽입하기
+
+가끔 시작 지점도 아니고 끝 지점도 아닌 특정 위치에 아이템을 삽입하기를 원할지도 모릅니다.
+이를 하기 위해서 여러분은 `slice()` 방법과 함께 `...` 배열 spread 문법을 사용하면 됩니다.
+`slice()` 방법은 배열의 "부분"을 자를 수 있도록 합니다.
+아이템을 삽입하기 위해서 여러분은 삽입지점 바로 앞까지 부분, 새로운 아이템, 그리고 나서 기존 배열의 남은 부분을 차례대로 spread합니다.
+
+이 예시에서, 삽입 버튼은 인덱스 `1`에 항상 삽입합니다:
+
+<Code src="https://codesandbox.io/s/s6q9f3?file=%2FApp.js&utm_medium=sandpack"/>
+
+### 배열에 다른 변화를 만들어내기
+
+spread 문법과 `map()`과 `filter()`와 같은 변화시키지 않는 방식만을 사용해서 할 수 없는 것들도 있습니다.
+예를 들어, 배열을 정렬 또는 역정렬을 하고싶을 때입니다.
+JavaScript의 `reverse()`와 `sort()` 방법들은 기존 배열을 변화시키기 때문에 이 방법들을 직접적으로 사용해서는 안됩니다.
+
+**하지만, 먼저 배열을 복사한 뒤 그 복사된 배열을 변화시키는 것은 가능합니다.**
+
+예를 들어,
+
+<Code src="https://codesandbox.io/s/ym4s5u?file=%2FApp.js&utm_medium=sandpack"/>
+
+먼저 기존 배열의 복사본을 만들기 위해 `[...list]` spread 문법을 사용합니다.
+이제 복사본을 가지고 있으므로 `nextList.reverse()` 또는 `nextList.sort()`와 같은 변화시키는 방법들을 사용할 수 있습니다.
+또는 심지어 `nextList[0] = "something"`과 같이 개개의 아이템을 할당할 수 있습니다.
+
+하지만, **배열을 복사하더라도 복사본 내부의 이미 존재하는 아이템을 직접적으로 변경해서는 안됩니다.**
+왜냐하면 이루어진 복사는 얕기 때문입니다. 즉, 새로운 배열은 기존 배열과 같은 아이템들을 갖고 있습니다.
+그래서 복사된 배열 내부의 객체를 변경하면 기존 상태를 변경하는 것과 같습니다.
+예를 들어, 아래 코드가 이 문제에 해당됩니다.
+
+```javascript
+const nextList = [...list];
+nextList[0].seen = true; // 문제: list[0]을 변화시킵니다
+setList(nextList);
+```
+
+`nextList`와 `list`는 다른 두개의 배열이지만 **`nextList[0]`**과 **`list[0]`은 같은 객체를 참조하고 있습니다.**
+`nextList[0].seen`을 변경하면 `list[0].seen`을 같이 변경하고 있는 것으로 피해야만 하는 상태 변경입니다!
+[중첩된 JavaScript 객체를 업데이트하는 것](https://beta.reactjs.org/learn/updating-objects-in-state#updating-a-nested-object)(아이템을 변경하는 것 대신에 변경을 원하는 각각의 아이템을 복사하는 것)과 비슷한 방식으로 이 문제를 해결할 수 있습니다.
+아래에 방법이 적혀있습니다.
+
+## 배열 내부의 객체를 업데이트하기
+
+객체는 *실제로* 배열의 "내부"에 위치해있지 않습니다.
+코드에서는 객체가 "내부"에 있는 것처럼 보이지만 배열 내부의 각 객체는 배열이 "참조"하고 있는 별도의 값입니다.
+`list[0]`과 같이 중첩된 영역을 변경할 때 조심해야 할 필요가 있는 이유입니다.
+또 다른 사람의 작업 결과물인 배열이 그 배열의 같은 요소를 참조하고 있을지도 모릅니다!
+
+**중첩된 상태를 업데이트할 때, 업데이트하기를 원하는 지점부터 최상위 수준까지 복사본을 만들 필요가 있습니다.**
+어떻게 이것이 작동하는지 살펴봅시다.
+
+이 예시에서, 두개의 분리된 미술품 목록이 같은 초기상태를 가지고 있습니다.
+두 목록은 독립적이어야 하지만, 변경 때문에 두개의 상태가 일시적으로 공유되고 한 목록 내에 있는 박스를 체크하는 것이 다른 목록에 영향을 줍니다:
+
+<Code src="https://codesandbox.io/s/46d808?file=%2FApp.js&utm_medium=sandpack"/>
+
+문제가 있는 코드부분은 아래와 같습니다:
+
+```javascript
+const myNextList = [...myList];
+const artwork = myNextList.find(a => a.id === artworkId);
+artwork.seen = nextSeen; // 문제: 기존의 아이템을 변화시킵니다
+setMyList(myNextList);
+```
+
+`myNextList` 배열 자체는 새로운 것이지만 아이템들은 기존의 `myList` 배열의 아이템들과 완전히 똑같습니다.
+`artwork.seen`을 변경하는 것은 *기존의* 미술품 항목을 변경합니다.
+그 미술품 항목은 `yourArtworks`에도 있기 때문에 오류의 원인이 됩니다.
+이러한 버그들을 해결하는 것은 어렵지만 감사하게도 상태를 변화시키는 것을 피하면 없앨 수 있습니다.
+
+**`map`을 사용하여 변경 없이 아이템의 업데이트된 버전으로 오래된 아이템을 대체할 수 있습니다.**
+
+```javascript
+setMyList(myList.map(artwork => {
+  if (artwork.id === artworkId) {
+    // *새로운* 객체로 변화를 만듭니다
+    return { ...artwork, seen: nextSeen };
+  } else {
+    // 변화없음
+    return artwork;
+  }
+});
+```
+
+여기, `...`은 객체의 복사본을 만들어내기 위해 사용되는 객체 spread 문법입니다.
+
+이러한 방식으로, 기존의 상태 아이템은 변경되지 않을 것이고 버그는 고쳐집니다:
+
+<Code src="https://codesandbox.io/s/8sk5hs?file=%2FApp.js&utm_medium=sandpack"/>
+
+일반적으로, **막 생성한 객체들만 변경해야 합니다**. 
+*새로운* 미술품을 삽입한다면, 그 미술품을 변경해도 되지만 이미 상태에 있는 무언가를 다룬다면 복사를 해야 합니다.
+
+### Immer로 간결한 업데이트 로직 작성하기
+
+변화 없이 중첩된 배열을 업데이트하는 것은 조금 반복적인 일입니다. [객체에서와 똑같이 말입니다](https://beta.reactjs.org/learn/updating-objects-in-state#write-concise-update-logic-with-immer):
+
+- 일반적으로, 두 레벨 이상의 깊이로 상태를 업데이트해서는 안됩니다. 상태 객체가 매우 깊다면, 그 [상태 겍체를 다르게 재구조화](https://beta.reactjs.org/learn/choosing-the-state-structure#avoid-deeply-nested-state)해서 평평하게 만들기를 원할 수 있습니다.
+
+- 상태 구조를 바꾸기를 원하지 않는다면, Immer를 사용하는 것이 선호됩니다. Immer는 변경 문법이지만 해당 문법을 편리하게 작성하게 만들어주면서 복사본을 만드는 것을 관리합니다.
+
+Art Buckeet List 예시가 Immer로 재작성되었습니다:
+
+<Code src="https://codesandbox.io/s/gtpqiy?file=%2FApp.js&utm_medium=sandpack"/>
+
+**`artwork.seen = nextSeen`과 같은 변경이 Immer로 어떻게 괜찮아졌는지** 주목하세요:
+
+```javascript
+updateMyTodos(draft => {
+  const artwork = draft.find(a => a.id === artworkId);
+  artwork.seen = nextSeen;
+});
+```
+
+*기존의* 상태를 변경하지 않고 Immer가 제공하는 특별한 `draft` 객체를 변경하고 있습니다.
+비슷하게, `draft`의 내용물에 `push()`와 `pop()`과 같은 변경 방법들을 적용할 수 있습니다.
+
+보이지 않는 곳에서 Immer는 `draft`에 실행한 변화들에 맞춰 밑바닥부터 다음 상태를 항상 만들어내고 있습니다.
+이 방식은 매번 상태를 변경하지 않고 event handler를 매우 간결하게 유지시킵니다.
+
+## 되짚어보기
+
+- 상태에 배열을 넣을 수 있지만 그 배열을 변경해서는 안됩니다.
+- 배열을 직접적으로 변경시키는 것 대신에 배열의 *새로운* 버전을 만들어내고 그 버전으로 상태를 업데이트합니다.
+- `[...arr, newItem]` 배열 spread 문법으로 새로운 아이템을 가진 배열을 만들어내어 사용할 수 있습니다.
+- `filter()`와 `map()`으로 아이템을 필터링하거나 변형해 새로운 배열을 만들어낼 수 있습니다.
+- 코드를 간결하게 하기 위해 Immer를 사용할 수 있습니다.
+
+## 도전 과제
+
+:::note 문제에 도전해보세요.
+### 도전 1: 장바구니 속 아이템 업데이트하기
+**도전 1: 장바구니 속 아이템 업데이트하기**
+
+"+"를 눌르면 대응하는 숫자가 증가하도록 `handleIncreaseClick` 로직을 채우세요:
+
+<Code src="https://codesandbox.io/s/0e5vy2?file=%2FApp.js&utm_medium=sandpack"/>
+
+> **정답**
+>
+> 새로운 함수를 만드는 데 `map` 함수를 사용하고나서 새로운 배열 속 변화된 객체의 복사본을 만들기 위해 `...` 객체 spread 문법을 사용할 수 있습니다.
+
+<Code src="https://codesandbox.io/s/4t9pd0?file=%2FApp.js&utm_medium=sandpack"/>
+:::
+
+:::note 문제에 도전해보세요.
+### 도전 2: 장바구니 속 아이템 삭제하기
+**도전 2: 장바구니 속 아이템 삭제하기**
+
+이 장바구니는 "+" 버튼은 작동하지만 "-" 버튼은 작동하지 않습니다.
+"-" 버튼을 누르면 대응하는 상품의 `count`를 줄이도록 event handler를 "-" 버튼에 추가할 필요가 있습니다.
+개수가 1일 때 "-"를 누르면, 상품은 자동으로 장바구니에서 제거되어야 합니다.
+0은 보여지지 않아야 한다는 것을 명심하세요.
+
+<Code src="https://codesandbox.io/s/ye14ft?file=%2FApp.js&utm_medium=sandpack"/>
+
+> **정답**
+>
+> 새로운 배열을 만드는데 `map`을 먼저 사용하고나서 `0`인 `count`를 가진 상품들을 제거하기 위해 `filter`를 사용합니다:
+
+<Code src="https://codesandbox.io/s/07irkv?file=%2FApp.js&utm_medium=sandpack"/>
+:::
+
+:::note 문제에 도전해보세요.
+### 도전 3: 변경하지 않는 방법들로 변경을 수정하세요
+**도전 3: 변경하지 않는 방법들로 변경을 수정하세요**
+
+이 예시에서, `App.js`의 모든 event handler들이 변경을 사용합니다.
+결과적으로, 할일을 수정하고 삭제하는 것이 잘 동작하지 않습니다.
+변경하지 않는 방식을 사용해 `handleAddTodo`, `handleChangeTodo`, 그리고 `handleDeleteTodo`을 재작성하세요.
+
+<Code src="https://codesandbox.io/s/vcx1hk?file=%2FApp.js&utm_medium=sandpack"/>
+
+> **정답**
+>
+> `handleAddTodo`에서 spread 문법을 사용할 수 있습니다. `handleChangeTodo`에서 `map`을 사용해 새로운 배열을 만들어낼 수 있습니다. `handleDeleteTodo`에서 `filter`로 새로운 배열을 만들어낼 수 있습니다.
+> 이제 목록이 정확하게 작동합니다:
+
+<Code src="https://codesandbox.io/s/2mdzuq?file=%2FApp.js&utm_medium=sandpack"/>
+:::
+
+:::note 문제에 도전해보세요.
+### 도전 4: Immer를 사용해 변경을 수정하세요
+**도전 4: Immer를 사용해 변경을 수정하세요**
+
+이전 도전과제와 같은 예제입니다. 이번에는 Immer를 사용해 변경을 수정하세요.
+여러분의 편의를 위해 `useImmer`는 미리 import되어있어서 `useImmer`를 이용해 `todos` 상태 변수들을 변경하면 됩니다.
+
+<Code src="https://codesandbox.io/s/qr9pck?file=%2FApp.js&utm_medium=sandpack"/>
+
+> **정답**
+>
+> Immer를 사용하면 Immer가 여러분에게 주는 `draft`의 일부만을 변경하는 한 변경하는 스타일로 코드를 작성할 수 있습니다.
+> 모든 변경들이 `draft`로 시행되면서 코드가 작동합니다:
+
+<Code src="https://codesandbox.io/s/xbtel5?file=%2FApp.js&utm_medium=sandpack"/>
+
+> 변경하는 방식과 변경하지 않는 방식의 접근을 Immer와 함께 혼용해서 사용해도 됩니다.
+> 
+> 예를 들어, 아래 버전에서는 `handleChangeTodo`와 `handleDeleteTodo`는 변경하지 않는 방식의 `map`과 `filter` 방식을 사용하지만 `handleAddTodo`는 Immer `draft`를 변경하면서 실행됩니다
+
+<Code src="https://codesandbox.io/s/przpud?file=%2FApp.js&utm_medium=sandpack"/>
+
+> Immer를 이용해 각각의 경우에 따라서 가장 자연스러운 스타일을 선택할 수 있습니다.
+:::
