@@ -1,5 +1,6 @@
 import { Code } from '../../../src/components/Code';
-import { Card } from '../../../src/components/Card';
+import { Challenge } from '../../../src/components/Challenge';
+import { ChallengeList} from '../../../src/components/Challenge';
 
 # 객체인 상태를 업데이트하기
 
@@ -11,7 +12,7 @@ import { Card } from '../../../src/components/Card';
 - React 상태인 객체를 올바르게 업데이트하는 방법
 - 객체를 변형하지 않고 중첩된 객체를 업데이트하는 방법
 - 불변성이란 무엇인지, 그리고 불변성을 깨뜨리지 않는 방법
-- 객체를 덜 반복해서 복사하는 방법
+- Immer를 사용해 객체를 덜 반복해서 복사하는 방법
 :::
 
 ## mutation(변화)이란?
@@ -222,7 +223,7 @@ setPerson({
 
 :::note DEEP DIVE
 
-### 객체는 정말로 중첩된 것은 아닙니다
+### 객체가 정말로 중첩된 것은 아닙니다
 
 이런 객체는 코드에서 "중첩된" 것처럼 보입니다:
 
@@ -270,4 +271,97 @@ let obj3 = {
   artwork: obj1
 };
 ```
+
+만약 `obj3.artwork.city`를 업데이트하려고 한다면,`obj2.artwork.city`와`obj1.city` 둘 다에 영향을 미칠 것입니다.
+왜냐하면 `obj3.artwork`,`obj2.artwork`,`obj1`은 모두 같은 객체이기 때문입니다. 이 점은 객체를 "중첩된" 것으로 생각한다면 보기 어려운 부분입니다.
+대신, 세 객체들은 서로를 키로 "가리키고" 있는 각각의 분리된 객체입니다.
+
 :::
+
+## Immer를 사용해 정확한 업데이트 로직을 작성하기
+
+만약 상태가 깊게 중첩되어있다면, [객체를 납작하게 만드는 것](https://beta.reactjs.org/learn/choosing-the-state-structure#avoid-deeply-nested-state)을 고려할수도 있습니다.
+하지만, 만약 상태구조를  변경하고 싶지 않다면, 중첩된 펼침으로의 지름길을 선호할 수 있습니다.//spread 의견 구합니다.
+[Immer](https://github.com/immerjs/use-immer)는 편리하지만 변경하는 문법을 사용하여 코드를 작성하도록 해 주고, 여러분을 위해 복사본 생성을 관리해주는 인기있는 라이브러리 입니다.
+Immer를 사용하면, 작성한 코드는 "문법을 어기고" 객채를 변경하는 것처럼 보입니다:
+
+```js
+updatePerson(draft => {
+  draft.artwork.city = 'Lagos';
+});
+```
+
+하지만, 일반적인 mutation과 다르게, 과거의 상태를 덮어쓰지 않습니다!
+
+:::note DEEP DIVE
+
+### Immer는 어떻게 작용하나요?
+
+Immer가 제공하는 `draft`는 [Proxy](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy)라고 불리는 동작을 "기록"하는 특별한 타입의 객체입니다.
+이 특징이 원하는 만큼 그 객체를 자유롭게 변형할 수 있는 이유입니다! 내부에서는, Immer가 `draft`의 어떤 부분이 변경되었는지를 알아냅니다.
+그리고, 수정된 부분을 포함하여 완전히 새로운 객체를 생성해닙니다.
+
+:::
+
+Immer를 사용해보기:
+
+1. `package.json`에 `use-immer`를 의존성으로 추가합니다
+2. `npm install`을 실행합니다.
+3. `import { useState } from 'react'`를`import { useImmer } from 'use-immer'`로 교체합니다.
+
+Immer로 변경된 위의 예제입니다:
+
+<Code src="https://codesandbox.io/s/vr01ks?file=/App.js&utm_medium=sandpack"/>
+
+이벤트핸들러가 얼마다 더 정확해졌는지 확인해보세요. 한 컴포넌트 안에 `useState`와`useImmer`를 원하는 만큼 섞어 사용할 수도 있습니다.
+Immer는 업데이트 핸들러를 정확하게 유지하는 좋은 방법입니다. 특히, 만약 상태 안에 중첩이 있고 객체를 복사하는게 반복되는 코드를 생성한다면 더욱 그렇습니다.
+
+:::note DEEP DIVE
+
+### 왜 상태를 변경하는 것은 React에서 권장되지 않나요?
+
+몇 가지 이유가 있습니다:
+
+- **디버깅:** 만약 `console.log`를 사용하고 상태를 변경하지 않는다면, 과거의 로그들은 더 최근의 상태 변화에 훼손되지 않을 것입니다.
+그래서 상태가 렌더링 사이에 어떻게 변했는지 분명하게 확인할 수 있습니다. 
+- **최적화:** 일반적인 React의 [최적화 전략](https://beta.reactjs.org/apis/react/memo)은 이전의 prop이나 상태가 다음의 것과 같으면 작업을 생략하는 것에 의존합니다.
+만약 상태를 전혀 변경하지 않는다면, 변화가 있었는지 여부를 매우 빨리 확인할 수 있습니다.
+만약 `prevObj === obj`라면, 내부가 아무것도 바뀌지 않았다는 것을 확신할 수 있습니다.
+- **새 특성들:** 지금 만들어나가고 있는 React의 새로운 특징은 상태가 [스냅샷처럼 사용되는 것](https://beta.reactjs.org/learn/state-as-a-snapshot)에 의존하고 있습니다. 
+만약 상태의 과거 버전들을 변경한다면, 새로운 특성들을 사용하지 못할 수 있습니다.
+- **필수 변화:** 되돌리기/다시 하기를 이용하는 것, 변화 내역을 보여주는 것, 혹은 사용자가 이전의 값으로 form을 리셋하는 것과 같은 앱상의 기능들은 아무것도 변경되지 았았을 때 더 구현하기 쉽습니다.
+메모리 안에 상태의 과거의 복사본들을 유지하고, 적절한 때에 그것들을 사용할 수 있기 때문입니다.
+변경이 되는 접근으로 시작한다면, 이와 같은 기능들은 나중에 추가하기 어려워질 수 있습니다.
+- **간단한 구현:**  
+
+:::note 
+
+## 되짚어보기
+
+- 모든 React의 상태를 불변적인 것으로 취급하세요.
+- 상태에 객체를 저장할 떄, 객체를 변경하는 것은 렌더링을 잃으키지 않고 이전의 렌더링 "스냅샷"과 다른 상태를 만들것입니다. 
+- 객체를 변경하는 대신에, _새로운_버전의 객체를 만들고 새로운 객체에 정보를 저장해 다시 렌더링을 유발하세요.
+- 객체를 복사하기 위해 `{...obj, something: 'newValue'}`와 같은 객체 spread 문법을 사용할 수 있습니다.
+- spread 문법은 얕은 복사입니다. 그것은 하나의 깊이만을 복사합니다. 
+- 중첩된 객체를 복사하기 위해서는 업데이트하려는 위치의 가장 위쪽까지 복사본을 만들어야 합니다.
+- 반복되는 복사코드를 줄이려면 Immer를 사용하세요.
+
+
+
+<ChallengeList challenges={[{
+  title:"잘못된 상태 업데이트하기",
+  question:"이 form은 몇 가지 버그가 있습니다. 점수를 올리는 버튼을 몇 번 클릭해보고, 올라가지 않는다는 것을 확인해보세요. 그리고 나서 이름을 수정하고 점수가 갑자기 변경된 것을 잡아냈다는 것을 확인하세요. 마지막으로, 성을 수정하고 점수가 완전히 사라진 것을 확인해보세요.\n\n여러분에게 주어진 일은 모든 버그를 고치는 것입니다. 고친 후에는 왜 각각의 버그가 일어났는지 설명해주세요.",
+  questionSandbox:<Code src="https://codesandbox.io/s/cp0jlx?file=%2FApp.js&utm_medium=sandpack"/>,
+  solutionSandbox:<Code src="https://codesandbox.io/s/gv1gj7?file=/App.js&utm_medium=sandpack"/>,
+  solution:"`handlePlusClick`의 문제는 이 함수가 `player` 객체를 변경했다는 것입니다. 결과적으로, React는 다시 랜더링할 이유를 몰랐고, 화면상의 점수를 랜더링하지 않았습니다.\n`handleLastNameChange`의 문제는 이미 있는 `...player`를 새 객체로 복사하지 않았다는 것입니다. 성을 수정하고 난 다음에 점수가 사라진 이유입니다."
+},
+{
+  title:"mutation을 찾고 수정하기",
+  question:"sample",
+  questionSandbox:<Code src="https://codesandbox.io/s/cgol6p?file=%2FApp.js&utm_medium=sandpack"/>,
+  solutionSandbox:<Code src="https://codesandbox.io/s/vbcoe2?file=%2FApp.js&utm_medium=sandpack"/>,
+},
+]}/>
+
+
+
