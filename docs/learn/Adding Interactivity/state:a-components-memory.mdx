@@ -1,3 +1,5 @@
+import {Code} from "../../../src/components/Code";
+
 # 상태: 컴포넌트의 기억
 
 컴포넌트들은 종종 인터랙션의 결과에 따라 무엇이 스크린에 올지를 변경해야 합니다. form에 적어내는 것은 입력 필드를 업데이트해야하고, 이미지 회전의 "다음"을 클릭하면 보여지는 이미지들을 변경해야 하고, "구매"를 클릭하면 물건을 쇼핑 카트에 넣어야 합니다. 
@@ -41,13 +43,13 @@
 import { useState } from 'react';
 ```
 
-```JavaScript
+```js
 let index = 0;
 ```
 
 그리고 이 라인을
 
-```JavaScript
+```js
 const [index, setIndex] = useState(0);
 ```
 
@@ -63,7 +65,7 @@ const [index, setIndex] = useState(0);
 
 `handleClick`은 상태변수와 함께 이렇게 쓰입니다:
 
-```JavaScript
+```js
 function handleClick() {
   setIndex(index + 1);
 }
@@ -113,7 +115,7 @@ const [index, setIndex] = useState(0);
 
 실제로 일어나는 방식은 이렇습니다:
 
-```JavaScript
+```js
 const [index, setIndex] = useState(0);
 ```
 
