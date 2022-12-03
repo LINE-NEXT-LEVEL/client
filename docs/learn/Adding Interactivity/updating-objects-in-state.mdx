@@ -347,21 +347,8 @@ Immer는 업데이트 핸들러를 정확하게 유지하는 좋은 방법입니
 - 반복되는 복사코드를 줄이려면 Immer를 사용하세요.
 
 
-
-<ChallengeList challenges={[{
-  title:"잘못된 상태 업데이트하기",
-  question:"이 form은 몇 가지 버그가 있습니다. 점수를 올리는 버튼을 몇 번 클릭해보고, 올라가지 않는다는 것을 확인해보세요. 그리고 나서 이름을 수정하고 점수가 갑자기 변경된 것을 잡아냈다는 것을 확인하세요. 마지막으로, 성을 수정하고 점수가 완전히 사라진 것을 확인해보세요.\n\n여러분에게 주어진 일은 모든 버그를 고치는 것입니다. 고친 후에는 왜 각각의 버그가 일어났는지 설명해주세요.",
-  questionSandbox:<Code src="https://codesandbox.io/s/cp0jlx?file=%2FApp.js&utm_medium=sandpack"/>,
-  solutionSandbox:<Code src="https://codesandbox.io/s/gv1gj7?file=/App.js&utm_medium=sandpack"/>,
-  solution:"`handlePlusClick`의 문제는 이 함수가 `player` 객체를 변경했다는 것입니다. 결과적으로, React는 다시 랜더링할 이유를 몰랐고, 화면상의 점수를 랜더링하지 않았습니다.\n`handleLastNameChange`의 문제는 이미 있는 `...player`를 새 객체로 복사하지 않았다는 것입니다. 성을 수정하고 난 다음에 점수가 사라진 이유입니다."
-},
-{
-  title:"mutation을 찾고 수정하기",
-  question:"sample",
-  questionSandbox:<Code src="https://codesandbox.io/s/cgol6p?file=%2FApp.js&utm_medium=sandpack"/>,
-  solutionSandbox:<Code src="https://codesandbox.io/s/vbcoe2?file=%2FApp.js&utm_medium=sandpack"/>,
-},
-]}/>
+<ChallengeList titleList="Update an item in the shopping cart,Remove an item from the shopping cart,Fix the mutations using non-mutative methods,Fix the mutations using Immer">
+</ChallengeList>
 
 
 

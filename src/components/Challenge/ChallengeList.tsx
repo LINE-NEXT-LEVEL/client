@@ -3,16 +3,17 @@ import { Challenge, ChallengeProps } from './Challenge';
 import { Tab } from './Tab';
 
 export type ChallengeListProps = {
-    challenges: Array<ChallengeProps>;
+    children: any;
+    titleList: string;
 }
 
-export const ChallengeList = ({challenges}:ChallengeListProps) => {
-    const [index,setIndex] = useState(0);
-    const titleList = challenges.map((challenge)=> challenge.title);
+export const ChallengeList = ({titleList, children}:ChallengeListProps) => {
+    const [tabIndex,setTabIndex] = useState(0);
     return (
         <div>
-            <div><Tab titleList={titleList} setIndex={setIndex}/></div>
-            <Challenge {...challenges[index]}/> 
+            <div>Try out some Challenges</div>
+            <div><Tab titleList={titleList.split(',')} setIndex={setTabIndex}/></div>
+            {React.cloneElement(children,{tabIndex:{tabIndex}})}
         </div>
     )
 

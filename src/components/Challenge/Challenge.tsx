@@ -2,28 +2,17 @@ import React, { ReactNode, useCallback, useState } from 'react';
 
 export type ChallengeProps = {
     title: string;
-    question: string;
-    questionSandbox?: ReactNode;
-    solutionSandbox?: ReactNode;
-    solution?: string;
+    index:number;
+    tabIndex: number;
+   children:ReactNode;
 }
-export const Challenge = ({title,question,questionSandbox,solutionSandbox,solution}:ChallengeProps) => {
-    const [showSolution,setShowSolution] = useState<Boolean>(false);
-    const onClickSolution = ()=>{
-        setShowSolution(!showSolution);
-    }
+export const Challenge = ({title,index,children,...props}:ChallengeProps) => {
+    const {tabIndex} = props;
+    const displayState = tabIndex===index? 'block':'none';
     return (
-        <div>
+        <div style={{display:displayState}}>
             <strong>{title}</strong>
-            <div>{question}</div>
-            {questionSandbox}
-            <button onClick={onClickSolution}>Solution</button>
-            {showSolution && (
-                <div>
-                    {solutionSandbox}
-                    {solution}
-                </div>
-            )}
+            {children}
         </div>
     )
 }
