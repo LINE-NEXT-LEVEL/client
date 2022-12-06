@@ -1,0 +1,188 @@
+import { Code } from '../../../src/components/Code';
+import { CenterImage } from "../../../src/components/CenterImage/CenterImage";
+
+# 상태를 유지하고 재설정하는 방법
+
+상태는 컴포넌트에 담긴 채로 격리되어 있습니다. React는 UI 트리에 기반해 어떤 상태가 어떤 컴포넌트의 것인지를 끊임 없이 추적합니다.
+리렌더링이 일어나는 동안, 여러분은 상태를 유지하거나 초기화하는 등의 조작을 할 수 있습니다.
+
+:::info 여러분이 배울 것
+- 어떻게 React가 컴포넌트의 구조를 "보는지"
+- React가 상태를 유지하거나 초기화하는 것을 언제 선택하는지
+- React의 상태를 어떻게 강제로 초기화시키는지
+- Key와 type이 상태 보존 여부에 미치는 영향
+:::
+
+## UI 트리
+
+브라우저는 UI를 모델링 할 때 많은 트리 구조를 이용합니다. [DOM](https://developer.mozilla.org/docs/Web/API/Document_Object_Model/Introduction)은 HTML 엘리먼트들을 대표하고,
+[CSSOM](https://developer.mozilla.org/docs/Web/API/CSS_Object_Model)은 CSS를 표현하는 트리 모델입니다.
+[Accessibility tree](https://developer.mozilla.org/docs/Glossary/Accessibility_tree)라는 것도 있습니다!
+
+React도 트리 구조를 이용해 여러분이 만든 UI를 구조화하고 관리합니다. React는 JSX로부터 **UI 트리**를 만듭니다.
+그리고 React DOM은 그 UI 트리에 맞게 브라우저의 DOM 엘리먼트들을 업데이트합니다. (React Native는 그 트리를 모바일 플랫폼에 맞는 특정 엘리먼트로 번역합니다.)
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_dom_tree.dark.png&w=1920&q=75"
+    alt="Diagram with three sections arranged horizontally. In the first section, there are three rectangles stacked vertically, with labels 'Component A', 'Component B', and 'Component C'. Transitioning to the next pane is an arrow with the React logo on top labeled 'React'. The middle section contains a tree of components, with the root labeled 'A' and two children labeled 'B' and 'C'. The next section is again transitioned using an arrow with the React logo on top labeled 'React'. The third and final section is a wireframe of a browser, containing a tree of 8 nodes, which has only a subset highlighted (indicating the subtree from the middle section)."
+/>
+
+React는 컴포넌트로부터 UI 트리를 만들고, React DOM이 이 트리를 DOM을 렌더링할 때 이용합니다.
+
+## 상태는 트리의 위치에 묶여있습니다.
+
+만약 컴포넌트에 상태가 주어지면, 여러분은 아마 그 상태가 컴포넌트 안에서 "살아있다고" 생각할 수도 있습니다.
+그치만 상태는 실제로 각 컴포넌트가 아닌 React가 들고 있습니다. React는 컴포넌트가 UI 트리 상의 위치에 상태 조각들을 연관짓습니다.
+
+아래 예시에는 `<Counter />` JSX 태그가 하나만 존재합니다. 그치만 두 개의 다른 위치에 렌더링 됩니다.
+
+<Code src="https://codesandbox.io/embed/musing-mountain-3f7gzd?fontsize=14&hidenavigation=1&theme=dark" />
+
+이것이 나무처럼 보이는 이유는 다음과 같습니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_tree.dark.png&w=828&q=75"
+    alt="Diagram of a tree of React components. The root node is labeled 'div' and has two children. Each of the children are labeled 'Counter' and both contain a state bubble labeled 'count' with value 0."
+/>
+
+**두 개의 카운터는 트리 상 서로 다른 두 위치에서 렌더링 되었기 때문에 분리되었습니다.**
+실제로 React를 사용할 때는 이 부분에 대해 생각해볼 필요가 없지만, 동작 과정을 이해하는데 있어서는 유용합니다.
+
+React에서 화면에 그려지는 서로 다른 컴포넌트는 완벽하게 격리된 상태를 각각 가집니다. 예를 들어, 만약 여러분이 두 개의 `Counter` 컴포넌트를 연달아 만들었다면,
+각 컴포넌트는 각각의 `score`와 `hover` 상태를 가집니다.
+
+두 카운터를 각각 클릭해보고 서로에게 영향이 가는지 확인해보세요.
+
+<Code src="https://codesandbox.io/embed/blazing-darkness-ls5jwy?fontsize=14&hidenavigation=1&theme=dark" />
+
+아마 확인하셨겠지만, 하나의 카운터가 업데이트 되면 그 카운터의 상태만 업데이트 됩니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_increment.dark.png&w=1080&q=75"
+    alt="Diagram of a tree of React components. The root node is labeled 'div' and has two children. The left child is labeled 'Counter' and contains a state bubble labeled 'count' with value 0. The right child is labeled 'Counter' and contains a state bubble labeled 'count' with value 1. The state bubble of the right child is highlighted in yellow to indicate its value has updated."
+/>
+
+React는 같은 자리에서 동일한 컴포넌트가 렌더링 되는 동안은 계속 상태를 관리합니다.
+아래 예시에서 두 카운터를 동시에 증가시키고, "Render the second counter" 체크박스를 해제해서 두 번째 카운터를 없앤 다음, 다시 체크박스를 클릭해 이를 확인해볼 수 있습니다.
+
+<Code src="https://codesandbox.io/embed/practical-bas-o5qxmg?fontsize=14&hidenavigation=1&theme=dark" />
+
+두 번째 카운터의 렌더링을 멈추었을 때를 주목해보세요. 그 컴포넌트의 상태는 완전히 사라졌습니다.
+이는 React가 컴포넌트를 삭제함과 동시에 관리되던 상태도 제거했기 때문입니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_remove_component.dark.png&w=1080&q=75"
+    alt="Diagram of a tree of React components. The root node is labeled 'div' and has two children. The left child is labeled 'Counter' and contains a state bubble labeled 'count' with value 0. The right child is missing, and in its place is a yellow 'poof' image, highlighting the component being deleted from the tree."
+/>
+
+컴포넌트를 삭제하는 경우
+
+만약 "Render the second counter"를 다시 클릭할 경우, 두 번째 `Counter`와 그의 상태는 다시 처음부터 시작합니다(`score = 0`). 그리고 DOM에 추가됩니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_add_component.dark.png&w=1080&q=75"
+    alt="Diagram of a tree of React components. The root node is labeled 'div' and has two children. The left child is labeled 'Counter' and contains a state bubble labeled 'count' with value 0. The right child is labeled 'Counter' and contains a state bubble labeled 'count' with value 0. The entire right child node is highlighted in yellow, indicating that it was just added to the tree."
+/>
+
+컴포넌트를 다시 추가하는 경우
+
+**React는 컴포넌트의 상태를 컴포넌트가 UI 트리 상에서 위치하는 동안에는 계속 상태를 보존합니다.** 만약 컴포넌트가 UI 트리에서 지워질 경우나 다른 컴포넌트가 같은 위치에 새로 그려지는 경우라면 React는 관리하던 상태를 없앱니다.
+
+
+## 같은 위치에 그려지는 같은 컴포넌트는 상태가 유지됩니다.
+
+아래 예시에 두 개의 `<Counter />` 태그가 있습니다.
+
+<Code src="https://codesandbox.io/embed/immutable-forest-q77znv?fontsize=14&hidenavigation=1&theme=dark" />
+
+체크박스를 클릭해 체크하거나 체크를 해제하더라도 카운터의 상태는 초기화되지 않습니다.
+`isFancy`가 `true`인지 `false`인지에 상관 없이 여러은 항상 `App` 컴포넌트의 첫 번째 자식은 항상 `<Counter />`입니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_same_component.dark.png&w=1200&q=75"
+    alt="Diagram with two sections separated by an arrow transitioning between them. Each section contains a layout of components with a parent labeled 'App' containing a state bubble labeled isFancy. This component has one child labeled 'div', which leads to a prop bubble containing isFancy (highlighted in purple) passed down to the only child. The last child is labeled 'Counter' and contains a state bubble with label 'count' and value 3 in both diagrams. In the left section of the diagram, nothing is highlighted and the isFancy parent state value is false. In the right section of the diagram, the isFancy parent state value has changed to true and it is highlighted in yellow, and so is the props bubble below, which has also changed its isFancy value to true."
+/>
+
+`App`의 상태를 바꾸는 것은 `Counter`를 초기화하지 않습니다. `Counter`가 항상 같은 위치에 있기 때문입니다.
+
+같은 위치에 같은 컴포넌트가 있다면, React에 관점에서는 같은 카운터입니다.
+
+:::danger 주의사항
+**중요한건 JSX 마크업에서의 위치가 아니라 UI 트리에서의 위치임을 기억하세요! React에게는 굉장히 중요한 부분입니다.**
+아래 컴포넌트는 두개의 `return`문이 있고 서로 다른 `<Counter />` JSX 태그가 `if`문 안과 밖에 위치해 있습니다.
+
+<Code src="https://codesandbox.io/embed/weathered-monad-omf2o9?fontsize=14&hidenavigation=1&theme=dark" />
+
+아마 여러분은 체크박스를 클릭했을 때 상태가 초기화된다고 생각했을 수도 있습니다. 하지만 그렇지 않습니다! 이는 **두 `<Counter />` 태그가 같은 위치에서 렌더링 되기 때문**입니다.
+React는 여러분이 함수 어디서 조건문을 섰는지를 모릅니다. React가 보는 것은 오직 함수가 리턴하는 것입니다.
+두가지 상황에서 `App` 컴포넌트는 `<div>`와 함께 `<Counter />`를 첫 번째 자식으로 리턴합니다. 그렇기 때문에 React가 이들을 _같은_ `<Counter />`로 보는 것입니다.
+
+같은 "주소"을 가지고 있다고 생각해볼 수도 있습니다. root의 첫 번째 자식의 첫 번째 자식처럼 말이죠.
+이는 React가 여러분이 작성한 함수의 로직과 관계 없이 이전 렌더링과 다음 렌더링을 연결시키는 방법이기도 합니다.
+:::
+
+
+## 같은 위치에 다른 컴포넌트가 들어오면 상태가 초기화 됩니다.
+
+아래 예시에서, 체크박스를 클릭하면 `<Counter>`가 `<p>`로 바뀝니다.
+
+<Code src="https://codesandbox.io/embed/zealous-mountain-ti7i1q?fontsize=14&hidenavigation=1&theme=dark" />
+
+여기서 여러분은 같은 위치에서 서로 _다른_ 타입의 컴포넌트로 바꿨습니다. 처음에는 `<div>`의 첫번째 자식이 `<Counter />`를 포함했습니다.
+하지만 `p`로 바뀐 이후에는 React가 `Counter`를 UI 트리에서 제거했고 상태도 제거했습니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_diff_pt1.dark.png&w=1920&q=75"
+    alt="Diagram with three sections, with an arrow transitioning each section in between. The first section contains a React component labeled 'div' with a single child labeled 'Counter' containing a state bubble labeled 'count' with value 3. The middle section has the same 'div' parent, but the child component has now been deleted, indicated by a yellow 'proof' image. The third section has the same 'div' parent again, now with a new child labeled 'p', highlighted in yellow."
+/>
+
+`Counter`가 `p`로 바뀔때, `Counter`는 이줘지고 `p`가 추가됩니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_diff_pt2.dark.png&w=1920&q=75"
+    alt="Diagram with three sections, with an arrow transitioning each section in between. The first section contains a React component labeled 'p'. The middle section has the same 'div' parent, but the child component has now been deleted, indicated by a yellow 'proof' image. The third section has the same 'div' parent again, now with a new child labeled 'Counter' containing a state bubble labeled 'count' with value 0, highlighted in yellow."
+/>
+
+다시 체크박스를 해제하면, `p`가 삭제되고 `Counter`가 추가됩니다.
+
+또한 **같은 위치에 다른 컴포넌트를 렌더링 하려 한다면, React는 그 전체 서브트리의 상태도 함께 초기화시킵니다.**
+아래 예시에서 카운터를 올린 후 체크박스를 클릭해 보세요.
+
+<Code src="https://codesandbox.io/embed/keen-tharp-zo8qbe?fontsize=14&hidenavigation=1&theme=dark" />
+
+카운터 상태는 여러분이 체크박스를 클릭했을때 초기화 되었습니다. 여러분이 렌더링 한 것은 `Counter`일지라도 `div`는 `div`에서 `section`으로 바뀌었습니다.
+만약 `div`의 자식이 DOM에서 삭제되었다면, `Counter`와 그 상태를 포함한 전체 자식 트리도 함께 삭제됩니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_diff_same_pt1.dark.png&w=1920&q=75"
+    alt="Diagram with three sections, with an arrow transitioning each section in between. The first section contains a React component labeled 'div' with a single child labeled 'section', which has a single child labeled 'Counter' containing a state bubble labeled 'count' with value 3. The middle section has the same 'div' parent, but the child components have now been deleted, indicated by a yellow 'proof' image. The third section has the same 'div' parent again, now with a new child labeled 'div', highlighted in yellow, also with a new child labeled 'Counter' containing a state bubble labeled 'count' with value 0, all highlighted in yellow."
+/>
+
+만약 `section`이 `div`로 바뀌면 `section`이 삭제되고 새로운 `div`가 추가됩니다.
+
+<CenterImage
+    src="https://beta.reactjs.org/_next/image?url=%2Fimages%2Fdocs%2Fdiagrams%2Fpreserving_state_diff_same_pt2.dark.png&w=1920&q=75"
+    alt="Diagram with three sections, with an arrow transitioning each section in between. The first section contains a React component labeled 'div' with a single child labeled 'div', which has a single child labeled 'Counter' containing a state bubble labeled 'count' with value 0. The middle section has the same 'div' parent, but the child components have now been deleted, indicated by a yellow 'proof' image. The third section has the same 'div' parent again, now with a new child labeled 'section', highlighted in yellow, also with a new child labeled 'Counter' containing a state bubble labeled 'count' with value 0, all highlighted in yellow."
+/>
+
+다시 되돌리게 되면 `div`가 삭제되고 새로운 `section`이 추가됩니다.
+
+경험에 비추어 볼때, **리렌더링 되는 사이에도 상태를 유지하려고 한다면, 렌더링되는 트리의 구조는 "같아야"**합니다.
+만약 구조가 다르다면, React가 컴포넌트를 트리에서 제거하면서 상태도 같이 파괴되기 때문입니다.
+
+:::danger 주의사항
+이는 중첩된 컴포넌트 함수를 사용해서는 안되는 이유이기도 합니다.
+
+아래 예시에서 `MyTextField` 컴포넌트는 `MyComponent` _내부에_ 정의되어 있습니다.
+
+<Code src="https://codesandbox.io/embed/festive-swartz-huufo3?fontsize=14&hidenavigation=1&theme=dark" />
+
+버튼을 클릭할때마다 여러분의 입력값은 사라집니다!
+이는 서로 다른 `MyTextField` 함수가 매 렌더링마다 `MyComponent` 내부에 새로 생성되기 때문입니다. 즉 매 렌더링마다 _다른_ 컴포넌트를 같은 위치에서 보여주고 있는 것입니다.
+따라서 React는 모든 아래의 상태를 초기화합니다. 이는 버그와 성능 문제로 이어질 수 있습니다.
+이 문제를 해결하기 위해서는 **항상 컴포넌트 함수를 최상위 레벨에 선언하고, 중첩되게 하지 않아야 합니다.**
+:::
+
+## 같은 위치에서 상태 초기화 하기
+
+<Code src="https://codesandbox.io/embed/keen-mendeleev-cc3i15?fontsize=14&hidenavigation=1&theme=dark" />
