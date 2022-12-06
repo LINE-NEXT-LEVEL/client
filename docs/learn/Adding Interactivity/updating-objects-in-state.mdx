@@ -86,7 +86,7 @@ onPointerMove={e => {
 
 <Code src="https://codesandbox.io/s/dqdjes?file=%2FApp.js&utm_medium=sandpack"/>
 
-:::note DEEP DIVE
+:::info DEEP DIVE
 
 ### 지역적인 변화는 괜찮습니다. 
 
@@ -164,7 +164,7 @@ setPerson({
 
 `...`spread 문법은 "얕은"복사입니다. - 이 문법은 복사할 때 한 단계의 깊이만 복사합니다. 빠르지만, 중첩된 값들을 업데이트하길 원할 때, 한 번 이상 사용해야 할 것입니다. 
 
-:::note DEEP DIVE
+:::info DEEP DIVE
 
 ### 여러개의 필드에 하나의 이벤트 핸들러 사용하기
 
@@ -221,7 +221,7 @@ setPerson({
 
 <Code src="https://codesandbox.io/s/qczu11?file=/App.js&utm_medium=sandpack"/>
 
-:::note DEEP DIVE
+:::info DEEP DIVE
 
 ### 객체가 정말로 중첩된 것은 아닙니다
 
@@ -278,10 +278,10 @@ let obj3 = {
 
 :::
 
-## Immer를 사용해 정확한 업데이트 로직을 작성하기
+## Immer를 사용해 간결한 업데이트 로직을 작성하기
 
 만약 상태가 깊게 중첩되어있다면, [객체를 납작하게 만드는 것](https://beta.reactjs.org/learn/choosing-the-state-structure#avoid-deeply-nested-state)을 고려할수도 있습니다.
-하지만, 만약 상태구조를  변경하고 싶지 않다면, 중첩된 펼침으로의 지름길을 선호할 수 있습니다.//spread 의견 구합니다.
+하지만, 만약 상태구조를  변경하고 싶지 않다면, 중첩된 spread 지름길을 선호할 수 있습니다.
 [Immer](https://github.com/immerjs/use-immer)는 편리하지만 변경하는 문법을 사용하여 코드를 작성하도록 해 주고, 여러분을 위해 복사본 생성을 관리해주는 인기있는 라이브러리 입니다.
 Immer를 사용하면, 작성한 코드는 "문법을 어기고" 객채를 변경하는 것처럼 보입니다:
 
@@ -293,7 +293,7 @@ updatePerson(draft => {
 
 하지만, 일반적인 mutation과 다르게, 과거의 상태를 덮어쓰지 않습니다!
 
-:::note DEEP DIVE
+:::info DEEP DIVE
 
 ### Immer는 어떻게 작용하나요?
 
@@ -313,10 +313,10 @@ Immer로 변경된 위의 예제입니다:
 
 <Code src="https://codesandbox.io/s/vr01ks?file=/App.js&utm_medium=sandpack"/>
 
-이벤트핸들러가 얼마다 더 정확해졌는지 확인해보세요. 한 컴포넌트 안에 `useState`와`useImmer`를 원하는 만큼 섞어 사용할 수도 있습니다.
-Immer는 업데이트 핸들러를 정확하게 유지하는 좋은 방법입니다. 특히, 만약 상태 안에 중첩이 있고 객체를 복사하는게 반복되는 코드를 생성한다면 더욱 그렇습니다.
+이벤트핸들러가 얼마다 더 간결해졌는지 확인해보세요. 한 컴포넌트 안에 `useState`와`useImmer`를 원하는 만큼 섞어 사용할 수도 있습니다.
+Immer는 업데이트 핸들러를 간결하게 유지하는 좋은 방법입니다. 특히, 만약 상태 안에 중첩이 있고 객체를 복사하는게 반복되는 코드를 생성한다면 더욱 그렇습니다.
 
-:::note DEEP DIVE
+:::info DEEP DIVE
 
 ### 왜 상태를 변경하는 것은 React에서 권장되지 않나요?
 
@@ -332,9 +332,11 @@ Immer는 업데이트 핸들러를 정확하게 유지하는 좋은 방법입니
 - **필수 변화:** 되돌리기/다시 하기를 이용하는 것, 변화 내역을 보여주는 것, 혹은 사용자가 이전의 값으로 form을 리셋하는 것과 같은 앱상의 기능들은 아무것도 변경되지 았았을 때 더 구현하기 쉽습니다.
 메모리 안에 상태의 과거의 복사본들을 유지하고, 적절한 때에 그것들을 사용할 수 있기 때문입니다.
 변경이 되는 접근으로 시작한다면, 이와 같은 기능들은 나중에 추가하기 어려워질 수 있습니다.
-- **간단한 구현:**  
+- **더 간단한 구현:** React는 mutation에 의존하지 않기 때문에, 객체로 어떤 특별한 일을 할 필요가 없습니다.
+많은 "반응형" 솔루션이 하는 것처럼 속성을 가로채거나, 항상 프록시로 감싸거나, 다른 특성들을 사용할 필요가 없습니다. 
+따라서 React를 사용하면 추가 성능이나 정확성이 저하되지 않고 크기에 상관없이 모든 개체를 상태로 전환할 수 있습니다.   
 
-:::note 
+:::info
 
 ## 되짚어보기
 
