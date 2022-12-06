@@ -1,10 +1,14 @@
 import React from 'react';
+import * as css from './DetailButton.css';
 
-export const DetailButton = ({name,content})=>{
+export const DetailButton = ({name,children})=>{
     return (
-        <details>
+        <details className={css.DetailButton}>
         <summary>{name}</summary>
-        <div>{content}</div>
+        <strong>{name}</strong>
+        <div>
+        {children}
+        </div>
     </details>
     )
 }

@@ -1,6 +1,6 @@
 import { Code } from '../../../src/components/Code';
-import { Challenge } from '../../../src/components/Challenge';
-import { ChallengeList} from '../../../src/components/Challenge';
+import { Challenge, CHallengeList, DetailButton } from '../../../src/components/Challenge';
+import { Flex } from '../../../src/components/Flex';
 
 # 객체인 상태를 업데이트하기
 
@@ -346,8 +346,53 @@ Immer는 업데이트 핸들러를 정확하게 유지하는 좋은 방법입니
 - 중첩된 객체를 복사하기 위해서는 업데이트하려는 위치의 가장 위쪽까지 복사본을 만들어야 합니다.
 - 반복되는 복사코드를 줄이려면 Immer를 사용하세요.
 
-
+<ChallengeList titleList="hello,hello,hello"/>
 <ChallengeList titleList="Update an item in the shopping cart,Remove an item from the shopping cart,Fix the mutations using non-mutative methods,Fix the mutations using Immer">
+<Challenge title="잘못된 상태 업데이트 수정하기" index={1}>
+이 form은 몇가지 버그를 갖고 있습니다. 점수를 높이는 버튼을 몇 번 클릭해보세요. 올라가지 않는 것을 확인할 수 있습니다. 그리고나서 이름(first name)을 수정하면, 수정했을 떄 점수가 갑자기 "따라잡힌" 것을 확인할 수 있습니다.
+마지막으로, 성을 수정하면 점수가 완전히 사라진 것을 확인할 수 있습니다.
+
+모든 버그를 고쳐보세요. 수정하고 왜 각각의 버그가 일어났는지 설명해주세요.
+
+<Code src="https://codesandbox.io/s/cp0jlx?file=%2FApp.js&utm_medium=sandpack"/>
+<DetailButton name="해답">
+여기 두 버그가 고쳐진 버전이 있습니다:
+<Code src="https://codesandbox.io/s/gv1gj7?file=%2FApp.js&utm_medium=sandpack"/>
+`handlePlusClick`의 문제는 `player` 객체를 변경한다는 것입니다. 결과적으로 React는 리랜더링을 시킬 이유를 물랐고, 화면상의 점수를 업데이트하지 않았습니다. 이름을 수정했을 떄 상태가 업데이트 되면서 화면의 점수를 같이 업데이트하는 리렌더링이 일어난 이유입니다.
+
+`handleLastNameChange`의 문제는 이미 있는 `...player`필드를 새로운 객체로 카피하지 않았던 것입니다. 그렇기 때문에 성(last name)을 수정하고 나서는 점수가 사라졌습니다.
+</DetailButton>
+</Challenge>
+<Challenge title="mutation을 찾아서 고치기" index={2}>
+고정된 배경에 드래그할 수 있는 박스가 있습니다. select input을 이용해 박스의 색상을 변경할 수 있습니다.
+
+하지만 버그가 하나 있습니다. 박스를 먼저 움직이고 나서 색상을 변경하면 배경이(원래는 움직이면 안됩니다!) 박스의 위치로 "뛰어"올 것입니다.
+하지만 이건 일어나면 안됩니다: `background`의 `position` prop은 `initialPosition`에 고정되어있고, `{x: 0,y: 0}`입니다.
+왜 생상을 변경하면 배경이 움직일까요?
+
+<Code src="https://codesandbox.io/s/cgol6p?file=%2FApp.js&utm_medium=sandpack"/>
+<Flex>
+<DetailButton name="힌트">
+예상하지 못한 변화가 있다면 mutation이 있다는 것입니다. `App.js`에서 mutation을 찾고 수정해보세요.
+</DetailButton>
+<DetailButton name="해답">
+문제는 `handleMove` 안의 mutation에 있었습니다. 이 mutation은 `initialPosition`이 가리키는 같은 객체인 `shape.position`을 변경했습니다. 
+이 부분이 왜 색상과 배경이 같이 움직였는지에 대한 이유입니다. (mutation이기 때문에 리랜더링을 유발하는 색상 변화 - 관련되지 않은 업데이트가 일어날 때까지 반영되지 않았습니다.)
+
+`handleMove`에서 mutation을 수정하고, 모양을 카피하는 스프레드 문법을 사용합니다. `+=` 또한 mutation인 것을 확인하세요. 그래서 일반적인 `+`를 사용해 다시 써야 합니다.
+<Code src="https://codesandbox.io/s/vbcoe2?file=%2FApp.js&utm_medium=sandpack"/>
+</DetailButton>
+</Flex>
+</Challenge>
+<Challenge title="Immer를 사용해 객체 업데이트하기" index={3}>
+이전의 챌린지에서 보았던 같은 버그 예시입니다. 이번에는 Immer를 사용해서 수정해보세요. 편리하게 `useImmer`는 이미 import되어있습니다.
+그래서 그것을 사용해 `shape` 상태변수를 변경할 필요가 있습니다. 
+<DetailButton name="해답">
+Immer로 다시 쓰여진 해답입니다. 이벤트 핸들러들이 mutate하는 형식으로 쓰여졌지만, 버그는 일어나지 않는다는 것을 확인해보세요. 
+물밑에서 Immer가 존재하는 객체를 절대 변경하지 않기 떄문에 그렇습니다.
+<Code src="https://codesandbox.io/s/ecqgpw?file=%2FApp.js&utm_medium=sandpack"/>
+</DetailButton>
+</Challenge>
 </ChallengeList>
 
 

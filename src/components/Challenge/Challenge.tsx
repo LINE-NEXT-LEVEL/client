@@ -3,16 +3,16 @@ import React, { ReactNode, useCallback, useState } from 'react';
 export type ChallengeProps = {
     title: string;
     index:number;
-    tabIndex: number;
-   children:ReactNode;
+    children?:ReactNode;
 }
-export const Challenge = ({title,index,children,...props}:ChallengeProps) => {
-    const {tabIndex} = props;
-    const displayState = tabIndex===index? 'block':'none';
+export const Challenge = ({title,children,index,...props}:ChallengeProps) => {
     return (
-        <div style={{display:displayState}}>
-            <strong>{title}</strong>
+        <div>
+            <strong>{index}.{title}</strong>
+            <div>
             {children}
+            </div>
+        
         </div>
     )
 }
