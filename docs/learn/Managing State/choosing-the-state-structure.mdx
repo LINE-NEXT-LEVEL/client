@@ -282,7 +282,7 @@ function Message({ initialColor }) {
 
 이 포장목록은 몇 개의 아이템들이 있고 몇 개의 아이템들이 포장되었는지 보여주는 footer를 가지고 있습니다.
 처음에는 작동을 하는 것처럼 보이지만 버그가 있습니다.
-예를 들어, 포장을 원하는 아이템을 체크하고나서 그것을 삭제하면, 개수가 정확하게 업데이트되지 않을 것입니다.
+예를 들어, 아이템을 포장된 것으로 체크하고나서 그것을 삭제하면, 개수가 정확하게 업데이트되지 않을 것입니다.
 개수 계산이 항상 정확하게 맞도록 고치세요.
 
 <Code src="https://codesandbox.io/s/xkuim8?file=/App.js&utm_medium=sandpack">
@@ -294,7 +294,7 @@ function Message({ initialColor }) {
 > **정답**
 
 > `total`과 `packed` 개수를 정확하게 업데이트하는 각각의 이벤트 핸들러를 주의깊게 변경할 수 있지만, 근본적인 문제는 이 상태 변수들이 이미 존재한다는 것입니다.
-> 이 상태 변수들은 불필요합니다. 그 이유는 항상 `items` 배열에서 아이템의 개수(포장 또는 전체)를 계산할 수 있기 때문입니다.
+> 이 상태 변수들은 불필요합니다. 그 이유는 항상 `items` 배열에서 아이템의 개수(포장 또는 전체)를 항상 계산할 수 있기 때문입니다.
 > 버그를 고치기 위해 불필요한 상태를 제거하세요:
 
 <Code src="https://codesandbox.io/s/c1slci?file=%2FApp.js&utm_medium=sandpack"> 
@@ -349,6 +349,10 @@ function Message({ initialColor }) {
 마지막으로, footer는 선택된 아이템 개수를 정확하게 보여주어야 합니다.
 
 <Code src="https://codesandbox.io/s/bpfqi3?file=%2FApp.js&utm_medium=sandpack"/>
+
+> **힌트**
+
+> 하나의 선택된 ID 대신에, 선택된 ID 집합 또는 [배열](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set)을 상태에 가질 수 있습니다.
 
 > **정답**
 
