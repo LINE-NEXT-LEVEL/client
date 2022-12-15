@@ -18,7 +18,7 @@
 하지만 props로 넘기는 것은 트리 깊숙이 몇몇 prop을 넘길 필요가 있을 때나 많은 컴포넌트들이 같은 prop을 필요로 할 때 불편하고 불필요한 코드가 많아질 수 있습니다.
 가장 가까운 조상은 데이터를 필요로하는 컴포넌트에서 꽤 멀리 떨어져 있을 수 있고 높게 [상태를 올리는 것](https://beta.reactjs.org/learn/sharing-state-between-components)은 "prop drilling"이라 불리는 현상을 가끔 만들어낼 수 있습니다.
 
-이미지
+<img width="880" alt="image" src="https://user-images.githubusercontent.com/55529617/207990539-c4960e94-c46d-45f5-b2a2-887549aeabf8.png">
 
 props로 넘기는 것 없이 트리 속 데이터를 필요로하는 컴포넌트에 데이터를 "순간이동" 시키는 방법이 있으면 얼마나 좋을까요?
 리엑트의 context 기능과 함께라면, 가능합니다!
@@ -68,7 +68,7 @@ props 하나만으로 할 수 없습니다. 여기서 context가 적용이 됩�
 
 context는 부모 컴포넌트가 부모 컴포넌트 내부의 전체 트리(심지어 떨어져 있는 컴포넌트라 해도!)에 어떠한 데이터를 제공하게 해줍니다.
 
-이미지
+<img width="880" alt="image" src="https://user-images.githubusercontent.com/55529617/207990559-904aa485-5da4-4277-84f7-5ca4bba7abeb.png">
 
 ### 단계 1: context를 만들기
 
@@ -230,6 +230,10 @@ export default function Section({ children }) {
 하지만 context는 다른 많은 사용 케이스들이 있습니다.
 전체 서브트리에 필요한 어떠한 정보든 context를 사용해 내려줄 수 있습니다: 현재 색깔테마, 현재 로그인된 사용자, 등등
 :::
+
+## Context passes through intermediate components 
+
+미번역
 
 ## context를 사용하기 전에
 
