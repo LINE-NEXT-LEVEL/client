@@ -250,4 +250,129 @@ function Message({ initialColor }) {
 - 선택과 같은 UI 패턴을 위해, 객체 그 자체를 상태로 쓰는 것 대신에 ID 또는 index를 상태로 사용합니다.
 - 중첩된 상태가 깊게 복잡하다면, 상태를 평평하게 만드려 노력해야 합니다.
 
-## 도전해보기
+## 도전 과제
+
+:::note 문제에 도전해보세요.
+### 도전 1: 업데이트하지 않는 컴포넌트를 고치기
+**도전 1: 업데이트하지 않는 컴포넌트를 고치기**
+
+이 `Clock` 컴포넌트는 `color`와 `time` 두개의 prop을 받습니다.
+선택창에서 다른 색깔을 고를 때, `Clock` 컴포넌트는 부모 컴포넌트로부터 다른 `color` prop을 받습니다.
+하지만, 모종의 이유로 표시되는 색깔은 업데이트되지 않습니다. 왜일까요? 문제를 고쳐보세요.
+
+<Code src="https://codesandbox.io/s/wkpf1p?file=%2FClock.js&utm_medium=sandpack">
+
+> **정답**
+
+> 문제는 이 컴포넌트가 `color` prop의 초기값으로 초기화된 `color` 상태를 가지고 있는 것입니다.
+> 하지만 `color` prop이 변경될 때, 상태 변수에 prop이 영향을 주지 않습니다!
+> 그래서 동기화가 맞지 않았습니다. 이 문제를 해결하기 위해, 상태 변수를 모두 제거하고 `color` prop을 직접 사용하세요.
+
+<Code src="https://codesandbox.io/s/848koo?file=%2FClock.js&utm_medium=sandpack">
+
+> 또는 재분해 문법을 사용하세요:
+
+<Code src="https://codesandbox.io/s/6gieex?file=%2FClock.js&utm_medium=sandpack">
+
+:::
+
+:::note 문제에 도전해보세요.
+### 도전 2: 고장난 포장목록을 고치기
+**도전 2: 고장난 포장목록을 고치기**
+
+이 포장목록은 몇 개의 아이템들이 있고 몇 개의 아이템들이 포장되었는지 보여주는 footer를 가지고 있습니다.
+처음에는 작동을 하는 것처럼 보이지만 버그가 있습니다.
+예를 들어, 아이템을 포장된 것으로 체크하고나서 그것을 삭제하면, 개수가 정확하게 업데이트되지 않을 것입니다.
+개수 계산이 항상 정확하게 맞도록 고치세요.
+
+<Code src="https://codesandbox.io/s/xkuim8?file=/App.js&utm_medium=sandpack">
+
+> **힌트**
+
+> 이 예시에서 불필요한 상태가 있습니까?
+
+> **정답**
+
+> `total`과 `packed` 개수를 정확하게 업데이트하는 각각의 이벤트 핸들러를 주의깊게 변경할 수 있지만, 근본적인 문제는 이 상태 변수들이 이미 존재한다는 것입니다.
+> 이 상태 변수들은 불필요합니다. 그 이유는 항상 `items` 배열에서 아이템의 개수(포장 또는 전체)를 항상 계산할 수 있기 때문입니다.
+> 버그를 고치기 위해 불필요한 상태를 제거하세요:
+
+<Code src="https://codesandbox.io/s/c1slci?file=%2FApp.js&utm_medium=sandpack"> 
+
+> 변화 직후 이벤트 핸들러가 어떻게 `setItems`를 부르는 것에만 집중하는지 주목하세요.
+> 아이템 개수는 다음 렌더링 동안 `items`로부터 잘 계산되어지면서 항상 동기화됩니다.
+
+:::
+
+:::note 문제에 도전해보세요.
+### 도전 3: 사라지는 선택 영역을 수정하기
+**도전 3: 사라지는 선택 영역을 수정하기**
+
+상태에 `letters` 목록이 있습니다.
+특정 편지에 마우스를 올리면, 하이라이트가됩니다.
+가장 최근에 하이라이트된 편지가 `highlightedLetter` 상태변수에 저장됩니다.
+특정 편지들을 "star"하거나 "unstar"함으로 `letters` 배열 상태를 업데이트할 수 있습니다.
+
+아래 코드는 동작하지만 사소한 UI 문제가 있습니다.
+"Star" 또는 "Unstar"를 눌렀을 때, 하이라이트는 잠시동안 사라집니다.
+하지만, 키보드를 이용해 다른 편지로 옮기거나 마우스포인터를 옮기자마자 다시 나타납니다. 왜 이런 현상이 나타날까요?
+하이라이팅이 버튼을 클릭한 이후 사라지지 않도록 고쳐보세요.
+
+<Code src="https://codesandbox.io/s/8j33b9?file=%2FApp.js&utm_medium=sandpack"/>
+
+> **정답**
+
+> 문제는 `highlightedLetter` 안에 편지객체를 가지고 있기 때문입니다.
+> `letters` 배열에 같은 정보를 가지고 있습니다.
+> 따라서 상태가 중복됩니다! 버튼클릭 이후 `letters` 배열을 업데이트할 때, `highlightedLetter`과는 다른 편지 객체를 새롭게 만듭니다.
+> `highlightedLetter === letter`이 `false`가 되는 이유이며 하이라이트가 사라지는 이유입니다.
+> 마우스 포인터가 이동하고 `setHighlightedLetter`가 불리울 때 하이라이트가 다시 나타납니다.
+
+> 문제를 해결하기 위해, 상태에서 중복을 제거합니다.
+> 두 곳에서 편지 *그 자체*를 저장하는 것 대신에 `highlightedId`를 저장합니다.
+> `letter.id === highlightedId`를 이용해 각 편지의 `isHighlighted`를 체크할 수 있습니다. 결과적으로 `letter` 객체는 마지막 렌더링 이후 변화되었을지라도 잘 작동합니다.
+
+<Code src="https://codesandbox.io/s/6jck5y?file=%2FApp.js&utm_medium=sandpack"/>
+
+:::
+
+:::note 문제에 도전해보세요.
+### 도전 4: 다중 선택 구현하기
+**도전 4: 다중 선택 구현하기**
+
+이 예시에서, `Letter` 컴포넌트는 편지가 선택되었다는 것을 표시하는 `isSelected` prop과 `onToggle` 핸들러를 가지고 있습니다.
+이 예시는 작동하지만 상태는 `selectedId`(`null` 또는 ID)만 저장하고 있어 한번에 오직 하나의 편지만 선택될 수 있습니다.
+
+다중선택을 지원하기 위해 상태 구조를 변경해봅시다. (어떻게 구조화해야 할까요? 코드를 작성하기 전에 아래 내용을 생각해보세요.)
+각각의 체크박스는 다른 체크박스들로부터 독립적이어야 합니다.
+선택된 편지를 클릭하는 것은 편지의 선택을 해제합니다.
+마지막으로, footer는 선택된 아이템 개수를 정확하게 보여주어야 합니다.
+
+<Code src="https://codesandbox.io/s/bpfqi3?file=%2FApp.js&utm_medium=sandpack"/>
+
+> **힌트**
+
+> 하나의 선택된 ID 대신에, 선택된 ID 집합 또는 [배열](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set)을 상태에 가질 수 있습니다.
+
+> **정답**
+
+> 하나의 `selectedId` 대신에, 상태가 `selectedIds`배열을 가집니다.
+> 예를 들어, 첫번째 그리고 마지막 편지를 선택했다면, 편지는 `[0, 2]`를 포함하고 있습니다.
+> 아무것도 선택되지 않았을 때, 빈 `[]`배열이 될 것입니다:
+
+<Code src="https://codesandbox.io/s/xxrgl4?file=%2FApp.js&utm_medium=sandpack"/>
+
+> 배열을 사용하는 데 있어 한가지 사소한 단점은 각각의 아이템에 대해서 아이템이 선택되었는지를 체크하기 위해 `selectedIds.includes(letter.id)`를 불러야 한다는 것입니다.
+> 만약 배열이 너무 크다면, 성능문제가 될 수 있습니다.
+> 왜냐하면 [`includes()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/includes)를 이용해 배열을 탐색하는 것은 시간에 정비례하고 각각의 아이템에 이 검색을 하기 때문입니다.
+
+> 이를 해결하기 위해, 더 빠른 [`has()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Set/has)를 제공하는 집합(Set)으로 상태를 가지고 있을 수 있습니다.
+
+<Code src="https://codesandbox.io/s/8976uk?file=%2FApp.js&utm_medium=sandpack"/>
+
+> 각각의 아이템은 더 빠르게 `selectedIds.has(letter.id)`체크합니다.
+
+> 상태 내부의 객체 또는 집합을 변경해서는 안되는 것을 주의하세요.
+> 이 주의 때문에 `handleToggle`함수가 집합의 *복사본*을 만들고 복사본을 업데이트합니다.
+
+:::
