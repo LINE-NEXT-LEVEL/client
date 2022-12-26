@@ -1,23 +1,19 @@
 import React, {ReactElement, ReactNode,useCallback, useState, } from 'react';
 import { Tab } from './Tab';
+import { TabContext } from '../hooks/useTab';
 
 export type ChallengeListProps = {
     children?: any;
-    titleList: string;
+    firstTitle: string;
 }
 
-export const ChallengeList = ({titleList, children}:ChallengeListProps) => {
-    const [tabIndex,setTabIndex] = useState(0);
-    const childrenArr = React.Children.toArray(children);console.log(tabIndex);
+export const ChallengeList = ({firstTitle, children}:ChallengeListProps) => {
     return (
         <div>
             <div>Try out some Challenges</div>
-            <div><Tab titleList={titleList.split(',')} setIndex={setTabIndex}/></div>
-            {childrenArr.map((child:ReactElement)=>{
-                return React.cloneElement(child);
-            }
-            )
-        }
+            <TabContext.Provider value={{tab:firstTitle}}>
+                {children}
+            </TabContext.Provider>
         </div>
     )
 

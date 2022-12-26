@@ -1,5 +1,6 @@
 import { Code } from '../../../src/components/Code';
 import { Card } from '../../../src/components/Card';
+import {ChallengeList,Challenge,DetailButton,Tab} from '../../../src/components/Challenge';
 
 # 컴포넌트에 Props 넘겨주기
 
@@ -243,3 +244,25 @@ Props는 시작하는 순간뿐 아니라, 매 순간 컴포넌트의 데이터�
 
 아래 마크업에서 `Card` 컴포넌트를 추출하고, `children` prop이 다른 JSX를 넘기도록 활용해보세요
   <Code src="https://codesandbox.io/s/xtn0d0?file=/App.js&from-sandpack=true" />
+
+testtesettest-----
+
+
+  <ChallengeList firstTitle="firstTitle">
+  <Tab title="title1">
+  <Challenge title="title1" index={0}>
+  <Code src="https://codesandbox.io/s/xtn0d0?file=/App.js&from-sandpack=true" />
+  </Challenge>
+  </Tab>
+   <Tab title="title2">
+  <Challenge title="title2" index={1}>
+  <Code src="https://codesandbox.io/s/xtn0d0?file=/App.js&from-sandpack=true" />
+  <DetailButton name="힌트">힌트를 주자</DetailButton>
+  </Challenge>
+  </Tab>
+  </ChallengeList>
+
+
+testtesettest
+
+<DetailButton name="힌트">힌트 working</DetailButton>

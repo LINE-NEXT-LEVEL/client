@@ -1,23 +1,22 @@
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useCallback } from 'react';
+import { useTab } from '../hooks/useTab';
 
 export type TabProps = {
-    challengeList: Array<string>;
-    setIndex: React.Dispatch<React.SetStateAction<number>>;
+    title: string;
+    children: ReactNode;
 
 }
 
-export const Tab = ({titleList,setIndex}) => {
-    const onClickTab = ({index}:{index:number}) => {
-        setIndex(index+1);
-    }
-    return (
-        <div style={{display:"flex",flexDirection:"row"}} >
-            {
-            titleList.map((title,index)=>(
-                <div onClick={(e) => onClickTab(index)}>{index+1}.{title}</div>
-            ))
-            }
-        </div>
-    )
-
+export const Tab = ({title,children}) => {
+   const { tab, setTab } = useTab();
+   const onTabClick = useCallback(()=>{
+    setTab(title);
+   },[]);
+   console.log(title);
+   return <>{tab===title && 
+    <div>
+        <div onClick={onTabClick}>helloooo.....</div>
+        {children}
+    </div>
+    }</>
 }
