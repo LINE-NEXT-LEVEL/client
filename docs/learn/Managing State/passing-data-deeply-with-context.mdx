@@ -1,0 +1,335 @@
+import {Code} from "../../../src/components/Code";
+import {BlockQuote} from "../../../src/components/BlockQuote/BlockQuote";
+
+# context를 이용해 데이터를 깊게 넘기기
+
+보통, 부모 컴포넌트에서 자식 컴포넌트로 props를 통해 정보를 넘깁니다.
+하지만 props를 넘기는 것은 중간에 많은 컴포넌트들을 통과해서 넘겨야 하거나 많은 컴포넌트들이 같은 정보를 필요로 한다면 불편하고 불필요한 코드가 많아질 수 있습니다.
+*Context*는 props로 정보가 명시적으로 전달되는 것 없이 부모 컴포넌트가 정보를 그 아래 트리에 있는 어느 컴포넌트(얼마나 깊이 있든 상관없이)라도 정보를 넘기는 것을 가능하게 만듭니다.
+
+:::note You will Learn
+- "prop drilling"은 무엇인가
+- context를 이용해 반복적인 prop 넘기기를 대체하는 방법
+- context를 사용하는 일반적인 경우들
+- context의 일반적인 대체 방법들
+:::
+
+## props로 넘기는 것의 문제
+
+[props로 넘기는 것](https://beta.reactjs.org/learn/passing-props-to-a-component)은 UI 트리를 통과해 데이터를 사용하는 컴포넌트에 데이터를 명시적으로 연결하는 최고의 방법입니다.
+
+하지만 props로 넘기는 것은 트리 깊숙이 몇몇 prop을 넘길 필요가 있을 때나 많은 컴포넌트들이 같은 prop을 필요로 할 때 불편하고 불필요한 코드가 많아질 수 있습니다.
+가장 가까운 조상은 데이터를 필요로하는 컴포넌트에서 꽤 멀리 떨어져 있을 수 있고 높게 [상태를 올리는 것](https://beta.reactjs.org/learn/sharing-state-between-components)은 "prop drilling"이라 불리는 현상을 가끔 만들어낼 수 있습니다.
+
+<img width="880" alt="image" src="https://user-images.githubusercontent.com/55529617/207990539-c4960e94-c46d-45f5-b2a2-887549aeabf8.png" />
+
+props로 넘기는 것 없이 트리 속 데이터를 필요로하는 컴포넌트에 데이터를 "순간이동" 시키는 방법이 있으면 얼마나 좋을까요?
+리엑트의 context 기능과 함께라면, 가능합니다!
+
+## Context: props를 넘기는 것의 대안책
+
+Context는 부모 컴포넌트가 자신 아래의 전체 트리에 데이터를 제공하는 것을 가능하게 만들어줍니다.
+context는 많은 곳에서 사용됩니다.
+아래 예시는 그 중 하나입니다.
+크기를 `level`로 받고 있는 `Heading` 컴포넌트에 주목해봅시다:
+
+<Code src="https://codesandbox.io/s/l5glye?file=%2FApp.js&utm_medium=sandpack" />
+
+같은 `Section` 내부에서는 항상 같은 크기를 가지는 여러 개의 heading을 원한다고 가정해봅시다:
+
+<Code src="https://codesandbox.io/s/36blul?file=%2FApp.js&utm_medium=sandpack" />
+
+지금 여러분은 `level` prop을 각각의 `<Heading>`에 각각 넘겨주고 있습니다:
+
+```
+<Section>
+  <Heading level={3}>About</Heading>
+  <Heading level={3}>Photos</Heading>
+  <Heading level={3}>Videos</Heading>
+</Section>
+```
+
+`level` prop을 `<Section>` 컴포넌트에 대신 넘겨주고 `<Heading>`에서 prop을 제거한다면 좋을 것입니다.
+이 방식으로 같은 섹션 내부의 모든 heading이 같은 크기를 가질 수 있도록 합니다.
+
+```
+<Section level={3}>
+  <Heading>About</Heading>
+  <Heading>Photos</Heading>
+  <Heading>Videos</Heading>
+</Section>
+```
+
+하지만 어떻게 `<Heading>` 컴포넌트가 가장 가까운 `<Section>`의 level을 알 수 있을까요?
+**자식 컴포넌트가 트리에서 위쪽 어딘가에 데이터가 있는지 "물어볼" 수 있는 어떠한 방법이 요구됩니다.**
+
+props 하나만으로 할 수 없습니다. 여기서 context가 적용이 됩니다. 세가지 단계로 context를 적용합니다:
+
+1. context를 **만듭니다**. (heading level을 위한 것이기 때문에 `LevelContext`라고 부릅니다.)
+2. 데이터를 필요로하는 컴포넌트에서 context를 **사용합니다**. (`Heading`은 `LevelContext`를 사용할 것입니다.)
+3. 데이터를 특정짓는 컴포넌트에서 context를 **제공합니다**. (`Section`은 `LevelContext`를 제공할 것입니다.)
+
+context는 부모 컴포넌트가 부모 컴포넌트 내부의 전체 트리(심지어 떨어져 있는 컴포넌트라 해도!)에 어떠한 데이터를 제공하게 해줍니다.
+
+<img width="880" alt="image" src="https://user-images.githubusercontent.com/55529617/207990559-904aa485-5da4-4277-84f7-5ca4bba7abeb.png" />
+
+### 단계 1: context를 만들기
+
+첫번째로, context를 만들 필요가 있습니다.
+context를 사용하기 위해 **파일에서 context를 export**할 필요가 있습니다.
+
+<Code src="https://codesandbox.io/s/0ewru9?file=%2FLevelContext.js&utm_medium=sandpack" />
+
+`createContext`의 인수는 기본값뿐입니다.
+`1`은 가장 큰 heading level을 나타내지만 어떠한 종류의 값(객체도 가능)도 인수로 넣을 수 있습니다.
+다음 단계에서 기본값의 중요성을 알 수 있습니다.
+
+### 단계 2: context 사용하기
+
+`useContext` 리엑트 훅과 context를 import하세요:
+
+```
+import { useContext } from 'react';
+import { LevelContext } from './LevelContext.js';
+```
+
+현재, `Heading` 컴포넌트는 props에서 `level`을 읽고 있습니다.
+
+```
+export default function Heading({ level, children }) {
+  // ...
+}
+```
+
+대신에, `level` prop을 제거하고 `LevelContext`에서 import한 context에서 값을 읽습니다:
+
+```
+export default function Heading({ children }) {
+  const level = useContext(LevelContext);
+  // ...
+}
+```
+
+`useContext`는 훅입니다. `useState`와 `useReducer`와 마찬가지로, 리엑트 컴포넌트의 가장 상단에서 훅을 불러와야만 합니다.
+`useContext`는 `Heading` 컴포넌트가 `LevelContext`를 읽기를 원한다고 React에게 전달합니다.
+
+이제 `Heading` 컴포넌트는 `level` prop을 가지고 있지 않으며 아래와 같이 더이상 JSX에서 `Heading`으로 level prop을 넘기지 않아도 됩니다:
+
+```
+<Section>
+  <Heading level={4}>Sub-sub-heading</Heading>
+  <Heading level={4}>Sub-sub-heading</Heading>
+  <Heading level={4}>Sub-sub-heading</Heading>
+</Section>
+```
+
+`Section`이 level을 대신 받도록 JSX를 업데이트합니다:
+
+```
+<Section level={4}>
+  <Heading>Sub-sub-heading</Heading>
+  <Heading>Sub-sub-heading</Heading>
+  <Heading>Sub-sub-heading</Heading>
+</Section>
+```
+
+다시 기억하는 의미로, 아래 코드는 작업을 수행하려고 했던 마크업입니다:
+
+
+<Code src="https://codesandbox.io/s/jydicj?file=%2FApp.js&utm_medium=sandpack" />
+
+위 예시는 아직 잘 동작하지 않는다는 것을 알립니다!
+**context를 사용할지라도, 아직 context를 제공하지 않았기** 때문에 모든 heading이 같은 크기를 가집니다.
+
+context를 제공하지 않으면, 리엑트는 이전 단계에서 특정지었던 기본값을 사용할 것입니다.
+이 예시에서, `createContext`의 인수로 `1`을 주었으므로 `useContext(LevelContext)`은 `1`을 반환하며 모든 heading이 `<h1>`으로 설정되었습니다.
+각각의 `Section`이 자신만의 context를 제공하는 것으로 이 문제를 해결해 봅시다.
+
+### 단계 3: context를 제공하기
+
+`Section` 컴포넌트는 현재 children을 렌더하고있습니다:
+
+```
+export default function Section({ children }) {
+  return (
+    <section className="section">
+      {children}
+    </section>
+  );
+}
+```
+
+children에게 LevelContext를 제공하기 위해 **context provider로 children을 감쌉니다**:
+
+```
+import { LevelContext } from './LevelContext.js'; // context provider
+
+export default function Section({ level, children }) {
+  return (
+    <section className="section">
+      <LevelContext.Provider value={level}> // context provider
+        {children}
+      </LevelContext.Provider> // context provider
+    </section>
+  );
+}
+```
+
+이는 React에게 "이 `<Section>` 내부의 어느 컴포넌트든 `LevelContext`에게 `level`을 달라고 요청할 수 있음을 의미합니다.
+컴포넌트는 그 컴포넌트 상단의 UI 트리에서 가장 가까운 `<LevelContext.Provider>`의 값을 사용할 것입니다.
+
+<Code src="https://codesandbox.io/s/ehit2d?file=%2FApp.js&utm_medium=sandpack" />
+
+기존 코드와 같은 결과지만 각각의 `Heading` 컴포넌트에 `level` prop을 넘길 필요가 없습니다!
+대신, Heading 컴포넌트는 가장 가까운 상단의 `Section`에 물어서 heading level을 "알아냅니다".
+
+1. `level` prop을 `<Section>`에 넘깁니다.
+2. `Section`은 children을 `<LevelContext.Provider value={level}>` 로 감쌉니다.
+3. `Heading`은 `useContext(LevelContext)`를 가진 가장 가까운 상단의 `LevelContext`에서 값을 물어봅니다.
+
+## 같은 컴포넌트에서 context를 사용하고 제공하기
+
+지금은 여전히 각각의 섹션의 `level`을 직접 지정해주어야만 합니다.
+
+```
+export default function Page() {
+  return (
+    <Section level={1}>
+      ...
+      <Section level={2}>
+        ...
+        <Section level={3}>
+          ...
+```
+
+context는 상단의 컴포넌트에서 정보를 읽게 해줄 수 있기 때문에, 각각의 `Section`은 `Section` 상단에서 `level`을 읽을 수 있고 자동으로 `level + 1`을 넘길 수 있습니다.
+아래 방법을 통해 가능합니다.
+
+```
+import { useContext } from 'react';
+import { LevelContext } from './LevelContext.js';
+
+export default function Section({ children }) {
+  const level = useContext(LevelContext);
+  return (
+    <section className="section">
+      <LevelContext.Provider value={level + 1}>
+        {children}
+      </LevelContext.Provider>
+    </section>
+  );
+}
+```
+
+이 변화로, `Section` 또는 `Heading` *둘 중 어디라도* `level` prop을 넘길 필요가 없습니다:
+
+<Code src="https://codesandbox.io/s/sbhymf?file=%2FApp.js&utm_medium=sandpack" />
+
+`heading`과 `Section` 둘 모두 얼마나 그들이 "깊게" 있는지 알아내기 위해 `LevelContext`를 읽습니다.
+그리고 `Section`은 그 자식을 `LevelContext`로 감쌉니다. 그러면 `Section`의 더 아래 컴포넌트도 `LevelContext`에 접근해 어떤 값이든 가져올 수 있게 됩니다.
+
+<BlockQuote>
+이 예시는 heading level을 사용했습니다. 중첩된 컴포넌트가 context를 덮어쓰는 방법을 시각적으로 보여주기 위해서입니다.
+하지만 context는 다른 많은 사용 케이스들이 있습니다.
+현재 색깔테마, 현재 로그인된 사용자 등 전체 서브트리에 필요한 어떠한 정보든 context를 사용해 내려줄 수 있습니다.
+</BlockQuote>
+
+## context는 중간의 컴포넌트들을 통과합니다
+
+context를 제공하는 컴포넌트와 context를 사용하는 컴포넌트 사이에 가능한 많은 컴포넌트들을 넣을 수 있습니다.
+`<div>`와 같은 빌트인 컴포넌트와 여러분이 만든 컴포넌트들 모두 포함이 됩니다.
+
+이 예시에서, 동일한 `Post` 컴포넌트(점선 테두리를 가진 컴포넌트)가 두 개의 다른 중첩 수준에서 렌더링됩니다.
+`Post` 컴포넌트 내에 있는 `<Heading>`은 가장 가까운 `<Section>`에서 자동으로 level을 얻는다는 것을 주목하세요:
+
+<Code src="https://codesandbox.io/s/8t0nb9?file=%2FApp.js&utm_medium=sandpack" />
+
+여러분은 이 예시가 작동하도록 특별한 무언가를 할 필요가 없습니다.
+`Section`은 내부 트리에 context를 만들어서 여러분은 `<Heading>`을 어느 곳이든 삽입할 수 있고 `<Heading>`은 정확한 사이즈를 가질 것입니다.
+위의 SandBox에서도 시도해보세요!
+
+**Context는 "컴포넌트의 주변환경에 맞춰서" 컴포넌트를 작성할 수 있도록 해주고 컴포넌트가 어디서(즉, 어떤 context에서) 렌더링되는지에 따라서 다르게 보이도록 해줍니다.**
+
+context가 작동하는 방식이 [CSS 특징 상속](https://developer.mozilla.org/en-US/docs/Web/CSS/inheritance)과 유사하다고 생각할 수 있습니다.
+CSS에서 `<div>`에 `color:blue`를 줄 수 있고 또다른 중간에 있는 DOM node가 `color:green`으로 색깔을 덮어쓰지 않는다면 내부의 어떤 DOM node에서는 (얼마나 깊든) 파란색을 상속할 것입니다
+비슷하게, React에서 위에서 오는 context를 덮어쓰는 유일한 방법은 다른 값을 가진 context provider로 children을 감싸는 것입니다.
+
+CSS에서, `color`와 `background-color` 같은 다른 특징들은 서로 덮어쓰지 않습니다. 모든 `<div>`의 `color`를 `background-color`에 영향을 주지 않고 빨간색으로 설정할 수 있습니다.
+비슷하게, **다른 리엑트 context는 서로 덮어쓰지 않습니다.**
+`createContext()`로 만들어진 각각의 context는 서로 완전히 분리되어 있고 특정한 context를 사용하고 제공하는 컴포넌트들을 서로 묶습니다.
+하나의 컴포넌트는 문제 없이 많은 다양한 context들을 사용하거나 제공합니다.
+
+## context를 사용하기 전에
+
+context는 사용하기 매우 매력적입니다!
+하지만, 이는 남용하기 너무 쉽다는 것을 의미합니다.
+**약간의 props를 몇 단계 깊이를 거쳐 넘길 필요가 있는 것이 context에 그 정보를 넣어야 한다는 것을 의미하지 않습니다.**
+
+context를 사용하기 전에 고려해야 하는 몇가지 대안들이 있습니다:
+
+1. **[props를 넘기는 것](https://beta.reactjs.org/learn/passing-props-to-a-component)으로 시작하세요.** 
+만약 당신의 컴포넌트가 사소하지 않다면, 여러 컴포넌트로 여러 props를 내려보내는 일은 충분히 일어날 수 있습니다.
+힘든 일처럼 느껴질 수 있지만, 어떤 컴포넌트가 무슨 데이터를 사용하는지 명확해집니다!
+여러분의 코드를 유지보수하는 사람은 데이터 흐름이 props로 명확하게 만든 것에 기뻐할 것입니다.
+
+2. **컴포넌트를 추출하고 추출한 컴포넌트에 [JSX로 `children`을 넘깁니다](https://beta.reactjs.org/learn/passing-props-to-a-component#passing-jsx-as-children).**
+만약 여러분이 데이터를 사용하지 않는 중간의 많은 컴포넌트들을 거쳐서 데이터를 넘겨야 한다면(그리고 아래로 넘기기만 한다면), 이는 여러분이 도중에 일부 컴포넌트들을 추출하는 것을 잊었다는 것을 의미합니다. 
+예를 들어, `posts` props로 데이터를 바로 사용하지 않는 컴포넌트에 데이터를 넘길지도 모릅니다. 예를 들어, `<Layout posts={posts} />`가 있습니다.
+대신에, `Layout`이 prop으로 `children`을 받고, `<Layout><Posts posts={posts} /></Layout>`을 렌더합니다.
+이는 데이터를 결정짓고 그 데이터를 필요로 하는 컴포넌트 사이의 몇개의 층들을 줄입니다.
+
+두 접근법이 여러분의 경우에 모두 잘 동작하지 않는다면, context를 고려해보세요.
+
+## context를 사용사례
+
+- **테마**: 만약 앱이 사용자가 모양을 변경하도록 허용하는 경우(예시 : 다크모드), 앱의 최상단에 context provider를 넣고 시각적 테마를 정해야 하는 컴포넌트에 이 context를 사용합니다.
+- **현재 계정**: 많은 컴포넌트들이 현재 사용자가 로그인되었는지 알 필요가 있을지도 모릅니다. 로그인 여부를 context에 넣는 것은 트리 내부 어디서든 읽을 수 있어 편리합니다.
+몇몇 앱들은 동시에 여러 개의 계정을 사용 합니다.(예시 : 다른 사용자에게 글을 남기는 것) 이런 경우들에는 다른 현재 계정 가지는 중첩된 provider 속에 UI의 일부를 감싸는 것이 편리할 수 있습니다.
+
+- **라우팅**: 대부분의 라우팅 해결법들은 현재 라우트를 가지기 위해 내부적으로 context를 사용합니다. 이것이 모든 링크가 활성화되었는지 여부를 "알" 수 있는 방법입니다.
+만약 여러분이 여러분만의 라우터를 만든다면, 똑같이 작동하기를 원할지도 모릅니다.
+
+- **상태 관리하기**: 앱이 성장함에 따라 앱의 상단에 가까울수록 많은 상태가 추가될 수 있습니다. 많이 아래로 떨어진 컴포넌트는 이를 변경하고 싶어할지도 모릅니다.
+복잡한 상태를 관리하기 위해 [context와 함께 reducer를 사용](https://beta.reactjs.org/learn/scaling-up-with-reducer-and-context)해 큰 번거로움 없이 먼 컴포넌트에 상태를 전달하는 것이 일반적입니다.
+
+Context는 상수를 전달할 때만 사용하지 않습니다. 다음 렌더링에 다른 값을 보내고 싶다면, 리엑트는 그 값을 읽어들이는 아래의 모든 컴포넌트들을 업데이트할 것입니다!
+이것이 context가 상태와 종종 함께 사용되는 이유입니다.
+
+일반적으로, 만약 어떤 정보가 트리의 다른 부분에 있는 멀리 떨어진 컴포넌트들에 필요하다면, context가 여러분을 도와줄 수 있습니다.
+
+## 되짚어보기
+
+- context는 컴포넌트 context 이하의 전체 트리에 정보를 제공하는 것을 가능하게 합니다.
+- context를 넘기기:
+1. `export const MyContext = createContext(defaultValue)`처럼 context를 만들고 export합니다.
+2. 얼마나 깊든 상관없이 어떤 자식 컴포넌트에서 읽을 수 있도록 `useContext(MyContext)` 훅으로 context를 넘깁니다.
+3. 부모 컴포넌트에서 context를 제공하기 위해 children을 `<MyContext.Provider value={...}>`로 감쌉니다.
+- 중간의 컴포넌트들을 통과해 지나갑니다.
+- context를 사용해 "환경에 맞게 조정되는" 컴포넌트를 작성할 수 있습니다. 
+- context를 사용하기 전에, props를 넘기는 것 또는 children으로 JSX를 넘기는 것을 시도합니다.
+
+## 도전 과제
+
+:::note 문제에 도전해보세요.
+### 도전 1: context로 prop drilling 대체하기
+**도전 1: context로 prop drilling 대체하기**
+
+이 예시에서, 체크박스를 선택하는 것은 각각의 `<PlaceImage>`에 넘기는 `imageSize` prop을 바꿉니다.
+체크박스 상태는 최상단 `App` 컴포넌트에서 가지고 있지만 각각의 `<PlaceImage>`는 상태를 알아야 합니다.
+
+현재, `App`은 `imageSize`를 `List`에 넘기고, `List`는 각각의 `Place`에 넘기고, `Place`는 `PlaceImage`에 넘깁니다.
+`imageSize` prop을 제거하고 `APP` 컴포넌트에서 `PlaceImage`로 바로 상태를 넘겨보세요.
+
+`Context.js`에서 context 선언이 가능합니다.
+
+<Code src="https://codesandbox.io/s/q512nv?file=%2FApp.js&utm_medium=sandpack" />
+
+> **정답**
+> 모든 컴포넌트에서 `imageSize` prop을 제거합니다.
+
+> `Context.js`에서 `ImageSizeContext`를 만들고 exportgkqslek.
+> 그리고나서 값을 아래로 내려보내기 위해 `<ImageSizeContext.Provider value={imageSize}>`로 List를 감싸고 `PlaceImage`에서 값을 읽기 위해 `useContext(ImageSizeContext)`를 추가합니다:
+
+<Code src="https://codesandbox.io/s/nwz4bl?file=%2FApp.js&utm_medium=sandpack" />
+
+:::
