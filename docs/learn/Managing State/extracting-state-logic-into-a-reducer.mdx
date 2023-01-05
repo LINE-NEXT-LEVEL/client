@@ -1,5 +1,6 @@
 import {Code} from "../../../src/components/Code";
 import {BlockQuote} from "../../../src/components/BlockQuote";
+import {Challenge, DetailButton} from '../../../src/components/Challenge;
 
 # 상태 로직을 Reducer로 추출하기
 
@@ -319,3 +320,78 @@ reducer를 쓸 때는 두 가지 팁을 머리 속에 기억하세요:
 
 ## Immer를 사용해 정확한 reducer 쓰기
 
+일반적인 상테에서 [*객체를 업데이트*](https://beta.reactjs.org/learn/updating-objects-in-state#write-concise-update-logic-with-immer)하고 [배열을](https://beta.reactjs.org/learn/updating-arrays-in-state#write-concise-update-logic-with-immer) 업데이트 하는 것처럼,
+리듀서를 더 정확하게 만들기 위해 Immer 라이브러리를 사용할 수 있습니다. 여기에, `[useImmerReducer](https://github.com/immerjs/use-immer#useimmerreducer)`rk `push`또는 `arr[i]=` 할당을 통해 상태를 변경하도록 해줍니다:
+
+<Code src="https://codesandbox.io/s/1kbqy4?file=%2FApp.js&utm_medium=sandpack"/> 
+
+reducer는 반드시 순수해야 하기 때문에 상태를 변경시키면 안됩니다. 하지만 Immer는 안전하게 변경할 수 있는 특별한 `초안` 객체를 제공합니다. 
+물 밑에서, Immer는 `초안`에 만든 변경 상태의 복사본을 만들 것입니다. 그렇기 때문에 `useImmerReudcer`로 관리되는 reducer들은 첫 번째 인자를 변경할 수 있고 상태를 반환하지 않아도 됩니다. 
+
+## 되짚어보기
+
+- `useState`에서 `useReducer`로 변경하기: 
+  1. 이벤트 핸들러에서 action을 보내세요.
+  2. 받은 상태와 action으로 다음 상태를 반환하는 reducer함수를 작성하세요.
+  3. `useState`를 `useReducer`로 교체하세요.
+- reducer는 코드를 더 많이 작성해야할 수는 있지만, 디버깅과 테스트를 도와줍니다.
+- reducer는 순수해야 합니다.
+- 변경하는 방식으로 reducer를 작성하고 싶다면 Immer를 사용하세요.
+
+## 문제에 도전해보세요.  
+<Challenge title="이벤트 핸들러에서 action 보내기" index={1}>
+  현재, `ContactList.js`와`Chat.js`안의 이벤트 핸들러들은`// TODO`코멘트를 갖고 있습니다. 입력이 작동하지 않는 이유이고, 버턴 클릭이 선택된 받는 이를 바꾸지 않는 이유입니다.
+
+  해당하는 action을 `dispatch`하기 위해 코드로 두`// TODO`를 교체하세요. 예상한 모양과 action의 종류를 보기 위해, `messengerReducer.js` 안의 reducer를 체크하세요. 
+  reducer는 이미 작성되어 있어서 바꿀 필요는 없습니다. `ContactList.js`와`Chat.js`에서 action을 보내기만 하면 됩니다.
+
+  <Code src="https://codesandbox.io/s/r279gj?file=%2FApp.js&utm_medium=sandpack"/>    
+  <Flex>
+  <DetailButton name="힌트"> 
+  `dispatch`함수는 prop으로 전달되었기 때문에 컴포넌트에서 이미 이용할 수 있습니다. 
+  그래서 해당하는 action 객체로 `dispatch`를 부를 필요가 있습니다.
+
+  객체의 모양을 확인하기 위해, reducer를 보고 어떤 `action` 필드를 볼지 확인할 수 있습니다. 예를 들어, reducer안의 `changed_selection` 케이스는 이렇게 보일 수 있습니다:
+
+  ```js
+  case 'changed_selection': {
+  return {
+    ...state,
+    selectedId: action.contactId
+  };
+}
+  ```  
+</DetailButton>
+<DetailButton name="해답">
+reducer 코드에서, 필요한 action이 이렇게 생겼다는 것을 유추할 수 있습니다:
+
+```js
+// When the user presses "Alice"
+dispatch({
+  type: 'changed_selection',
+  contactId: 1,
+});
+
+// When user types "Hello!"
+dispatch({
+  type: 'edited_message',
+  message: 'Hello!',
+});
+```
+
+해당하는 메세지를 보내기 위해 업데이트된 예제가 있습니다:
+
+<Code src="https://codesandbox.io/s/dmj309?file=/App.js&utm_medium=sandpack"/>
+</DetailButton>
+  </Flex>
+</Challenge>
+
+<Challenge title="메세지를 보낼 때 입력 초기화하기" index={2}>
+현재, "보내기" 버튼을 누르는 것은 아무것도 하지 않습니다. 
+이렇게 동작할 "보내기" 버튼에 이벤트 핸들러를 붙이세요:
+
+1. 받는 이의 이메일과 메세지를 `alert`로 보여주세요.
+2. 메세지 입력을 초기화하세요.
+
+<Code src="https://codesandbox.io/s/dmj309?file=%2FChat.js&utm_medium=sandpack"/>
+</Challenge>
