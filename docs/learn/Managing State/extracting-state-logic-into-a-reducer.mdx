@@ -1,5 +1,6 @@
 import {Code} from "../../../src/components/Code";
 import {BlockQuote} from "../../../src/components/BlockQuote";
+import {Challenge, DetailButton} from '../../../src/components/Challenge;
 
 # 상태 로직을 Reducer로 추출하기
 
@@ -264,3 +265,133 @@ const [tasks, setTasks] = useState(initialTasks);
 ```js
 const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
 ```
+
+`useReducer` 훅은 `useState`와 비슷합니다. - 초기 상태를 전달해야하고 useReducer가 상태로 쓰이는 값과 그 상태를 설정하는 방법을 돌려줍니다( 이 경우에는 dispatch 함수입니다). 
+하지만 조금 다른 부분이 있습니다 .
+
+`useReducer` 훅은 두개의 인자를 받습니다:
+
+1. 하나의 reducer 함수
+2. 하나의 초기 상태
+
+이제 완전히 이어졌습니다! 여기서 reducer는 컴포넌트 파일의 아래에 선언되어있습니다:
+
+<Code src="https://codesandbox.io/s/eueycz?file=%2FApp.js&utm_medium=sandpack"/>
+
+원하면 다른 파일로 reducer를 이동시킬 수도 있습니다:
+
+<Code src="https://codesandbox.io/s/3uuhkl?file=%2FApp.js&utm_medium=sandpack"/>
+
+컴포넌트 로직은 이렇게 책임을 분리하면 더 쉽게 읽을 수 있습니다. 이제 이벤트 핸들러는 action을 보내어 _무엇이 일어났는지_를 명시하고, reducer 함수는 그게 반응하여 _어떻게 상태를 업데이트 하는지_를 결정합니다.
+
+## `useState`와 `useReducer`를 비교하기 
+
+Reducer가 불리한 면이 없는 것은 아닙니다! 아래에 두 가지를 비교할 몇 가지 방법을 제시했습니다:
+
+**코드 크기**: 일반적으로, `useState`로는 솔직하게 더 적은 코드를 작성할 수 있습니다. `useReducer`로는 reducer함수_와_ action을 두 다 보내야 합니다. 그러나, `useReducer`는 만약 비슷한 방식의 상태를 
+수정하는 많은 이벤트 핸들러들이 있다면 코드를 줄일 수 있습니다.
+
+**가독성**: `useState`는 상태 업데이트가 간단하다면 정말 읽기 쉽습니다. 업데이트가 복잡해진다면 코드가 점점 더 부풀려져서 읽어내기 어렵게 될 것입니다.
+이 경우에, `useReducer`는 이벤트 핸들러의 _무엇이 일어났는지_에서 _어떻게_ 상태를 업데이트하는 지를 깔끔하게 분리할 수 있습니다. 
+
+**디버깅**: `useState`로 버그가 있으면 _어디서_ 그리고 _왜_ 상태가 부정확하게 설정되었는지 말하기 어려울 수 있습니다. 
+`useReducer`를 사용하면, 리듀서에 콘솔 로그를 포함해서 모든 상태 업데이트를 보고, _왜_ 그것이 일어났는지 (어떤 `action` 때문인지)를 볼 수 있습니다. 
+만약 각 `action`이 정확하다면, reducer 로직 그 자체에 실수가 있었다는 것을 알 수 있을 것입니다. 그러나, `useState`를 사용할 떄는 코드를 파헤치기 위해 더 많은 절차를 밟아야 합니다.
+
+**테스트**: reducer는 컴포넌트에 의존하지 않는 순수함수 입니다. 이것은 export 해서 독립된 곳에서 테스트할 수 있다는 것을 의미합니다. 
+일반적으로 더 현실적인 환경에서 컴포넌트를 테스트하는 것이 가장 좋지만, 복잡한 상태 업데이트 로직에서는 reducer가 특정 초기값과 action에 특정한 상태를 되돌려주는 것을 확실히하는 것이 더 유용합니다.
+
+**개인의 선호**: 어떤 사람은 reducer를 좋아하고, 어떤 사람은 그렇지 않습니다. 괜찮습니다. 선호의 문제일 뿐이죠. 항상 `useState`와 `useReducer`를 번갈아가면서 사용해도 됩니다: 둘은 동등합니다!
+
+우리는 컴포넌트에서 부정확한 상태 업데이트 떄문에 버그를 자주 마주하게 된다면 reducer를 사용하기를 추천하고 코드를 더 구조화시키는 것을 원합니다. 모든 것에 reducer를 사용할 필요는 없습니다: 자유롭게 섞어 쓰세요!
+심지어 같은 컴포넌트에 `useState`과 `useReducer`를 같이 써도 상관 없습니다. 
+
+## reducer를 잘 작성하기
+
+reducer를 쓸 때는 두 가지 팁을 머리 속에 기억하세요:
+
+- **reducer는 순수해야 한다:** [상태 업데이트 함수](https://beta.reactjs.org/learn/queueing-a-series-of-state-updates)와  비슷하게, reducer는 렌더링 동안 돌아갑니다!
+(Action은 다음 렌더링 때까지 쌓여있습니다.) 이것은 reducer가 반드시 [순수해야 한다](https://beta.reactjs.org/learn/keeping-components-pure)는 것을 의미합니다 - 같은 입력은 같은 결과를 낳아야 합니다.
+요청을 보내거나, timeout을 계획하거나, (컴포넌트 밖의 어떤 것에 영향을 줄 수 있는 동작)어떠한 부작용을 만들어서도 안 됩니다. reducer는 [객체](https://beta.reactjs.org/learn/updating-objects-in-state)와 [배열](https://beta.reactjs.org/learn/updating-arrays-in-state)을 변경 없이 업데이트 해야만 합니다.
+
+- **각 action은 데이터에서 다양한 변화를 일으킬 수 있더라도 하나의 사용자 인터랙선을 의미합니다.** 예를 들어, 만약 사용자가 reducer에 의해 관리되는 다섯 개의 입력 필드 형식의 "새로 고침"을 누른다면, 
+다섯개의 각각의 `set_field` action을 보내는 것보다 하나의 `reset_form` action을 보내는 것이 더 합리적이다. 만약 모든 action을 reducer에 기록한다면, 로그는 어떤 인터랙션을 재구성할지 
+혹은 어떤 순서로 반응이 일어났는지를 충분히 명확하게 보여주여야 한다. 이 부분은 debugging 하는데 도움이 된다!
+
+## Immer를 사용해 정확한 reducer 쓰기
+
+일반적인 상테에서 [*객체를 업데이트*](https://beta.reactjs.org/learn/updating-objects-in-state#write-concise-update-logic-with-immer)하고 [배열을](https://beta.reactjs.org/learn/updating-arrays-in-state#write-concise-update-logic-with-immer) 업데이트 하는 것처럼,
+리듀서를 더 정확하게 만들기 위해 Immer 라이브러리를 사용할 수 있습니다. 여기에, `[useImmerReducer](https://github.com/immerjs/use-immer#useimmerreducer)`rk `push`또는 `arr[i]=` 할당을 통해 상태를 변경하도록 해줍니다:
+
+<Code src="https://codesandbox.io/s/1kbqy4?file=%2FApp.js&utm_medium=sandpack"/> 
+
+reducer는 반드시 순수해야 하기 때문에 상태를 변경시키면 안됩니다. 하지만 Immer는 안전하게 변경할 수 있는 특별한 `초안` 객체를 제공합니다. 
+물 밑에서, Immer는 `초안`에 만든 변경 상태의 복사본을 만들 것입니다. 그렇기 때문에 `useImmerReudcer`로 관리되는 reducer들은 첫 번째 인자를 변경할 수 있고 상태를 반환하지 않아도 됩니다. 
+
+## 되짚어보기
+
+- `useState`에서 `useReducer`로 변경하기: 
+  1. 이벤트 핸들러에서 action을 보내세요.
+  2. 받은 상태와 action으로 다음 상태를 반환하는 reducer함수를 작성하세요.
+  3. `useState`를 `useReducer`로 교체하세요.
+- reducer는 코드를 더 많이 작성해야할 수는 있지만, 디버깅과 테스트를 도와줍니다.
+- reducer는 순수해야 합니다.
+- 변경하는 방식으로 reducer를 작성하고 싶다면 Immer를 사용하세요.
+
+## 문제에 도전해보세요.  
+<Challenge title="이벤트 핸들러에서 action 보내기" index={1}>
+  현재, `ContactList.js`와`Chat.js`안의 이벤트 핸들러들은`// TODO`코멘트를 갖고 있습니다. 입력이 작동하지 않는 이유이고, 버턴 클릭이 선택된 받는 이를 바꾸지 않는 이유입니다.
+
+  해당하는 action을 `dispatch`하기 위해 코드로 두`// TODO`를 교체하세요. 예상한 모양과 action의 종류를 보기 위해, `messengerReducer.js` 안의 reducer를 체크하세요. 
+  reducer는 이미 작성되어 있어서 바꿀 필요는 없습니다. `ContactList.js`와`Chat.js`에서 action을 보내기만 하면 됩니다.
+
+  <Code src="https://codesandbox.io/s/r279gj?file=%2FApp.js&utm_medium=sandpack"/>    
+  <Flex>
+  <DetailButton name="힌트"> 
+  `dispatch`함수는 prop으로 전달되었기 때문에 컴포넌트에서 이미 이용할 수 있습니다. 
+  그래서 해당하는 action 객체로 `dispatch`를 부를 필요가 있습니다.
+
+  객체의 모양을 확인하기 위해, reducer를 보고 어떤 `action` 필드를 볼지 확인할 수 있습니다. 예를 들어, reducer안의 `changed_selection` 케이스는 이렇게 보일 수 있습니다:
+
+  ```js
+  case 'changed_selection': {
+  return {
+    ...state,
+    selectedId: action.contactId
+  };
+}
+  ```  
+</DetailButton>
+<DetailButton name="해답">
+reducer 코드에서, 필요한 action이 이렇게 생겼다는 것을 유추할 수 있습니다:
+
+```js
+// When the user presses "Alice"
+dispatch({
+  type: 'changed_selection',
+  contactId: 1,
+});
+
+// When user types "Hello!"
+dispatch({
+  type: 'edited_message',
+  message: 'Hello!',
+});
+```
+
+해당하는 메세지를 보내기 위해 업데이트된 예제가 있습니다:
+
+<Code src="https://codesandbox.io/s/dmj309?file=/App.js&utm_medium=sandpack"/>
+</DetailButton>
+  </Flex>
+</Challenge>
+
+<Challenge title="메세지를 보낼 때 입력 초기화하기" index={2}>
+현재, "보내기" 버튼을 누르는 것은 아무것도 하지 않습니다. 
+이렇게 동작할 "보내기" 버튼에 이벤트 핸들러를 붙이세요:
+
+1. 받는 이의 이메일과 메세지를 `alert`로 보여주세요.
+2. 메세지 입력을 초기화하세요.
+
+<Code src="https://codesandbox.io/s/dmj309?file=%2FChat.js&utm_medium=sandpack"/>
+</Challenge>
