@@ -1,0 +1,235 @@
+import { Code } from "../../../src/components/Code"; import {
+    BlockQuote
+} from "../../../src/components/BlockQuote/BlockQuote";
+
+# Reducer와 Context를 통해 확장하기
+
+Reducer는 컴포넌트의 상태 업데이트 로직을 통합할 수 있도록 해줍니다. Context를 사용하면 정보를 다른 컴포넌트 깊숙히까지 전달해줄 수 있습니다.
+복잡한 화면을 표현할때는 reducer와 context를 함께 사용해볼 수 있습니다.
+
+:::info 여러분이 배울 것
+- reducer와 context를 결합하는 방법
+- 상태를 prop으로 받지 않고도 전달하는 방법
+- context와 상태를 가긱 다른 파일에서 관리하는 방법
+:::
+
+## Reducer와 context 함께 사용하기
+
+[Reducer를 소개하는](https://beta.reactjs.org/learn/extracting-state-logic-into-a-reducer) 글에서 가져온 아래 예시에서는
+상태를 reducer를 통해 관리하고 있습니다.
+Reducer 함수는 모든 상태 업데이트 로직을 포함화고 있고, 파일 하단에 선언되어 있습니다.
+
+<Code src="https://codesandbox.io/embed/naughty-keldysh-u5b2fk?fontsize=14&hidenavigation=1&theme=dark" />
+
+Reducer는 이벤트 핸들러를 짧고 간결하게 작성할 수 있도록 도와줍니다. 하지만 여러분의 앱이 커질 경우, 또 다른 어려움에 봉착하게 될 수도 있습니다.
+**위 예시에서 `tasks` 상태와 `dispatch` 함수는 오직 최상위 레벨인 `TaskApp` 컴포넌트에서만 사용이 가능합니다.**
+다른 컴포넌트들이 tasks 배열을 읽거나 변경하게 하기 위해서는 명시적으로 현재 상태와 이를 바꿀 수 있는 이벤트 핸들러를 props로 내려주어야만 합니다.
+
+예를 들어, `TaskApp`은 task들의 배열과 이벤트 핸들러를 `TaskList`에게 전달해줍니다.
+
+```jsx
+<TaskList
+  tasks={tasks}
+  onChangeTask={handleChangeTask}
+  onDeleteTask={handleDeleteTask}
+/>
+```
+
+그리고 `TaskList`는 이벤트 핸들러를 `Task`에게 전달해줍니다.
+
+```jsx
+<Task
+  task={task}
+  onChange={onChangeTask}
+  onDelete={onDeleteTask}
+/>
+```
+
+이런 작은 예시에서는 잘 동작하지만, 중간에 수백 수천개의 컴포넌트들이 있다면 상태와 함수들을 내려주는 것은 꽤 복잡한 작업일겁니다!
+
+이렇게 props를 통해 데이터를 내려주는것의 대안으로써, 여러분은 `tasks`와 `dispatch` 함수를
+[context를 통해](https://beta.reactjs.org/learn/passing-data-deeply-with-context) 내려주길 원할겁니다.
+**이 방법에서는 `TaskApp` 아래에 있는 어떤 컴포넌트라도 "prop drilling" 없이 tasks와 dispatch 함수를 읽을 수 있습니다.**
+
+reducer를 context와 조합할때는 이렇게 합니다.
+
+1. Context를 **만듭니다.**
+2. 상태와 dispatch를 context에 **집어 넣습니다.**
+3. Context를 트리 어디서든 접근해 **사용합니다.**
+
+### 1단계 : context 만들기
+
+`useReducer` 훅은 현재 `tasks`와 이 상태를 업데이트 할 수 있는 `dispatch` 함수를 리턴합니다.
+
+```jsx
+const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+```
+
+이를 트리 아래로 전달하기 위해서는 두 개의 서로 다른 [context](https://beta.reactjs.org/learn/passing-data-deeply-with-context#step-2-use-the-context)를 생성해야 합니다.
+- `TasksContext`는 현재의 task 배열을 전달합니다.
+- `TasksDispatchContext`는 컴포넌트가 dispatch 할 수 있도록 하는 함수를 전달합니다.
+
+이 두 context를 하나의 파일에 두고 내보내면(export) 이후에 다른 파일에서 불러와(import) 사용할 수 있습니다.
+
+<Code src="https://codesandbox.io/embed/green-firefly-1n71cs?fontsize=14&hidenavigation=1&theme=dark" />
+
+여기서 여러분은 `null`을 기본값으로 두 context에 전달했습니다. 실제 값은 `TaskApp` 컴포넌트에 의해 채워지게 됩니다.
+
+
+### 2단계 : 상태와 dispatch를 context에 집어 넣기
+
+이제 두 context를 `TaskApp` 컴포넌트에서 불러옵니다. `tasks`와 `useReducer()`에서 반환된 `dispatch`를 이하 트리 전체에 [전달](https://beta.reactjs.org/learn/passing-data-deeply-with-context#step-3-provide-the-context)해줍니다.
+
+```jsx
+import { TasksContext, TasksDispatchContext } from './TasksContext.js';
+
+export default function TaskApp() {
+  const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+  // ...
+  return (
+    <TasksContext.Provider value={tasks}>
+      <TasksDispatchContext.Provider value={dispatch}>
+        ...
+      </TasksDispatchContext.Provider>
+    </TasksContext.Provider>
+  );
+}
+```
+
+지금은 정보들을 props로 전달하기도 하고 동시에 context로도 전달하고 있습니다.
+
+<Code src="https://codesandbox.io/embed/keen-antonelli-kfvrn7?fontsize=14&hidenavigation=1&theme=dark" />
+
+다음 단계에서는 props를 통해 전달하는 방식을 제거해보겠습니다.
+
+### 3단계 : context를 트리 어디서든 사용하기
+
+이제 우리는 task들의 배열이나 이벤트 핸들러를 트리 아래로 전달해줄 필요가 없습니다.
+
+```jsx
+<TasksContext.Provider value={tasks}>
+  <TasksDispatchContext.Provider value={dispatch}>
+    <h1>Day off in Kyoto</h1>
+    <AddTask />
+    <TaskList />
+  </TasksDispatchContext.Provider>
+</TasksContext.Provider>
+```
+
+대신 task 배열이 필요한 컴포넌트는 누구라도 `TaskContext`에 접근해 읽어올 수 있습니다.
+
+```jsx
+export default function TaskList() {
+  const tasks = useContext(TasksContext);
+  // ...
+```
+
+또한 어떤 컴포넌트든 context로부터 `dispatch`를 꺼내와 task 리스트를 업데이트 할 수 있습니다.
+
+```jsx
+export default function AddTask() {
+  const [text, setText] = useState('');
+  const dispatch = useContext(TasksDispatchContext);
+  // ...
+  return (
+    // ...
+    <button onClick={() => {
+      setText('');
+      dispatch({
+        type: 'added',
+        id: nextId++,
+        text: text,
+      });
+    }}>Add</button>
+    // ...
+```
+
+**`TaskApp` 컴포넌트는 어떤 이벤트 핸들러도 아래로 전달하지 않고, 마찬가지로 `TaskList`도 아무 이벤트 핸들러도 `Task` 컴포넌트에게 전달하지 않습니다.**
+각각의 컴포넌트는 필요할 때 context에 접근해 읽어올 수 있습니다.
+
+<Code src="https://codesandbox.io/embed/objective-tristan-8179bl?fontsize=14&hidenavigation=1&theme=dark" />
+
+**상태는 여전히 최상위 레벨인 `TaskApp` 컴포넌트에 위치해 있고, `useReducer`를 통해 관리되고 있습니다.**
+하지만 `TaskApp`의 `tasks`와 `dispatch`는 이제 트리 아래에 있는 어떤 컴포넌트라도 context를 불러와 사용하면 접근할 수 있습니다.
+
+## 모든 배선들을 하나의 파일에 정리하기
+
+꼭 해야할 필요는 없지만, 미래에는 reducer와 context를 하나의 파일에서 관리해야 할 수도 있습니다. 현재는 `TasksContext.js`가 두 context 선언만을 포함하고 있습니다.
+
+```jsx
+import { createContext } from 'react';
+
+export const TasksContext = createContext(null);
+export const TasksDispatchContext = createContext(null);
+```
+
+이 파일은 곧 복잡해질겁니다! Reducer를 같은 파일에 위치시키고, 새로운 `TasksProvider` 컴포넌트를 같은 파일에서 선언할 것입니다.
+이 컴포넌트는 모든 조각들을 하나로 묶는 역할을 갖고 있습니다.
+
+1. reducer를 통해 상태를 관리합니다.
+2. 두 context로 아래 트리를 감쌉니다.
+3. JSX를 전달할 수 있도록 [`children`을 prop으로 받습니다.](https://beta.reactjs.org/learn/passing-props-to-a-component#passing-jsx-as-children)
+
+```jsx
+export function TasksProvider({ children }) {
+  const [tasks, dispatch] = useReducer(tasksReducer, initialTasks);
+
+  return (
+    <TasksContext.Provider value={tasks}>
+      <TasksDispatchContext.Provider value={dispatch}>
+        {children}
+      </TasksDispatchContext.Provider>
+    </TasksContext.Provider>
+  );
+}
+```
+
+**이제 `TaskApp`을 둘러싼 배선들과 복잡한 것들이 제거되었습니다.**
+
+<Code src="https://codesandbox.io/embed/lingering-architecture-7pfy1j?fontsize=14&hidenavigation=1&theme=dark" />
+
+또한 `TasksContext.js`에서 context를 _사용_하는 함수를 내보낼(export) 수도 있습니다.
+
+```jsx
+export function useTasks() {
+  return useContext(TasksContext);
+}
+
+export function useTasksDispatch() {
+  return useContext(TasksDispatchContext);
+}
+```
+
+만약 컴포넌트가 context로부터 값을 읽어야 한다면 이 함수들을 통해 할 수 있습니다.
+
+```jsx
+const tasks = useTasks();
+const dispatch = useTasksDispatch();
+```
+
+이 함수들은 실제 로직을 바꾸지는 않습니다. 하지만 이후에 context들을 분리하거나 몇몇 로직들을 함수에 추가할때 유용합니다.
+**지금은 모든 context와 reducer 관련된 코드들이 `TasksContext.js`에서 관리되고 있습니다. 이는 컴포넌트 코드를 깔끔하고 복잡하지 않게 만들어줍니다. 컴포넌트는 어디서 데이터를 가져와야 하는지보다 무엇을 보여줘야 하는지에 더 집중할 수 있게 됩니다.**
+
+<Code src="https://codesandbox.io/embed/hopeful-panna-nc64qd?fontsize=14&hidenavigation=1&theme=dark" />
+
+여러분은 아마 `TasksProvider`를 tasks를 어떻게 다뤄야 할지 알고있는 '화면의 일부'라고 생각할 것이고, `useTasks`를 그 tasks를 읽는 방법,
+그리고 `useTasksDispatch`를 트리 아래에 있는 어떤 컴포넌트에서든 tasks를 업데이트시킬 수 있도록 하는 방법이라고 생각할 것입니다.
+
+:::info
+`useTasks`와 `useTasksDispatch`같은 함수들을 [custom Hooks)](https://beta.reactjs.org/learn/reusing-logic-with-custom-hooks) 라고 부릅니다.
+여러분이 만든 함수의 이름이 `use`로 시작한다면 React는 이를 custom hook이라고 받아들입니다. custom hook의 내부에서는 `useContext`와 같은 다른 hook들을 호출할 수 있습니다.
+:::
+
+앱이 커질수록 이와 같은 context-reducer 쌍이 더 많이 필요해질 것입니다.
+이는 트리의 깊은 곳에 있는 데이터에 접근할 때마다 많은 작업 없이 앱을 확장하고 상태를 변경할 수 있는 강력한 방법입니다.
+
+## 되짚어보기
+- Reducer와 context를 결합함으로써 어떤 컴포넌트에서든 그 상위 컴포넌트의 상태를 읽거나 변경할 수 있습니다.
+- 자식 컴포넌트에 상태와 dispatch 함수를 전달해주기 위해서는 아래와 같은 절차를 따릅니다.
+  1. 두 context를 만듭니다. (하나는 상태를 위한 것이고, 다른 하나는 dispatch 함수를 위한 것입니다.)
+  2. Reducer를 사용하는 컴포넌트를 두 context로 감싸줍니다.
+  3. 데이터를 읽고자 하는 컴포넌트에서 context에 접근해 데이터를 가져옵니다.
+- 하나의 파일에서 배선들을 관리함으로써 컴포넌트의 복잡성을 낮출 수 있습니다.
+  - Context를 제공해주는 `TasksProvider`같은 컴포넌트를 내보낼(export) 수 있습니다.
+  - `useTasks`와 `useTasksDispatch`같은 custom hooks를 내보낼(export) 수도 있습니다.
+- Context-reducer 쌍을 자주 사용하게 될 것입니다.
